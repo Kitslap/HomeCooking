@@ -1,0 +1,147 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml — Cooking Home
+#
+# Usage :
+#   cp .env.example .env          # configurer JWT_SECRET
+#   docker compose up --build     # premier démarrage
+#   docker compose up -d          # démarrage en arrière-plan
+#   docker compose down -v        # arrêt + suppression des volumes
+#
+# Services :
+#   backend   — API Go, port 8080 (interne uniquement, proxifié par nginx)
+#   frontend  — React + Nginx, port 3000 (point d'entrée unique)
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: cooking-home
+
+services:
+
+  # ── Backend Go ──────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    image: cooking-home/backend:latest
+    container_name: cooking-home-backend
+
+    # Le backend n'est PAS exposé directement vers l'hôte en production.
+    # Nginx proxifie /api/* vers ce service via le réseau interne.
+    # Pour le développement local, décommenter la ligne ci-dessous :
+    # ports:
+    #   - "8080:8080"
+
+    environment:
+      PORT:             "8080"
+      ENV:              "production"
+      # JWT_SECRET, CORS_ORIGINS, etc. chargés depuis .env (voir env_file)
+      DB_PATH:          "/data/cooking-home.db"
+      CORS_ORIGINS:     "http://localhost:3000"
+      JWT_ACCESS_TTL:   "15m"
+      JWT_REFRESH_TTL:  "7d"
+      RATE_LIMIT_RPS:   "20"
+      RATE_LIMIT_BURST: "40"
+
+    env_file:
+      # .env DOIT contenir JWT_SECRET (obligatoire, refusé si absent ou valeur par défaut)
+      - path: .env
+        required: true
+
+    volumes:
+      # Volume nommé pour la persistance de la base SQLite
+      - sqlite-data:/data
+
+    networks:
+      - internal
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout:  5s
+      retries:  5
+      start_period: 10s
+
+    restart: unless-stopped
+
+    # Limite les ressources pour éviter les abus mémoire/CPU
+    deploy:
+      resources:
+        limits:
+          cpus:   "0.5"
+          memory: "128M"
+        reservations:
+          cpus:   "0.1"
+          memory: "32M"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  # ── Frontend React + Nginx ───────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: cooking-home/frontend:latest
+    container_name: cooking-home-frontend
+
+    ports:
+      # Point d'entrée unique accessible depuis l'hôte
+      - "${FRONTEND_PORT:-3000}:80"
+
+    networks:
+      - internal
+
+    depends_on:
+      backend:
+        # condition: service_healthy  # Docker uniquement
+        # Podman : utiliser "service_started" ou laisser sans condition
+        condition: service_started
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health-frontend || exit 1"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+      start_period: 5s
+
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          cpus:   "0.3"
+          memory: "64M"
+        reservations:
+          cpus:   "0.05"
+          memory: "16M"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+
+# ── Volumes ────────────────────────────────────────────────────────────────────
+volumes:
+  sqlite-data:
+    name: cooking-home-sqlite
+    driver: local
+    # Pour monter un répertoire hôte spécifique, décommenter :
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: /opt/cooking-home/data
+
+
+# ── Réseau interne ─────────────────────────────────────────────────────────────
+networks:
+  internal:
+    name: cooking-home-net
+    driver: bridge
+    # Isolation totale — le backend n'est accessible que via ce réseau
+    internal: false   # false pour que nginx puisse résoudre DNS externe si besoin

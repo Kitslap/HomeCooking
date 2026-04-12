@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Binaires Go compilés
+backend/cooking-home
+backend/*.exe
+
+# SQLite (données locales)
+*.db
+*.db-wal
+*.db-shm
+
+# Node (si tu rebuildes le front en local)
+cooking-home-src/node_modules/
+cooking-home-src/dist/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

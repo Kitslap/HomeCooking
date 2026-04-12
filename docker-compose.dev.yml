@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.dev.yml — Override développement
+#
+# Usage :
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# Différences vs production :
+#   - Backend exposé directement sur :8080 (pour curl / Insomnia)
+#   - Logs en mode verbose (debug)
+#   - Hot-reload frontend via volume (si Vite dev server utilisé)
+#   - Pas de limite de ressources (debug confortable)
+#   - ENV=development sur le backend (logs colorés, pas de HSTS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: cooking-home
+
+services:
+
+  backend:
+    build:
+      target: builder        # image builder avec Go toolchain inclus pour debug
+    environment:
+      ENV:              "development"
+      JWT_ACCESS_TTL:   "1h"          # tokens plus longs en dev (moins de re-login)
+      CORS_ORIGINS:     "http://localhost:3000,http://localhost:5173"
+      RATE_LIMIT_RPS:   "100"         # rate limit permissif en dev
+      RATE_LIMIT_BURST: "200"
+    ports:
+      - "8080:8080"                   # accès direct backend depuis l'hôte
+    # En développement, on peut remplacer ENTRYPOINT par un watcher
+    # command: ["go", "run", "./cmd/server"]   # si volume source monté
+    deploy:
+      resources: {}                   # pas de limite en dev
+
+  frontend:
+    build:
+      args:
+        VITE_API_URL: "http://localhost:8080"   # appels directs backend en dev
+    ports:
+      - "3000:80"
+    deploy:
+      resources: {}
