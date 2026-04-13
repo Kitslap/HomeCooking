@@ -210,7 +210,7 @@ Contributions are welcome. Please open an issue before submitting a large PR so 
 
 ## License
 
-MIT — see [LICENSE](https://github.com/Kitslap/HomeCooking/blob/main/LICENSE) for details.
+MIT — see [LICENSE]([https://github.com/Kitslap/HomeCooking/blob/main/LICENSE](https://github.com/Kitslap/HomeCooking/tree/main?tab=MIT-1-ov-file)) for details.
 
 ---
 
