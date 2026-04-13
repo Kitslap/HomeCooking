@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	authjwt "github.com/pierreburbaud/cooking-home/internal/auth"
+	authjwt "github.com/Kitslap/HomeCooking/internal/auth"
 )
 
 // ctxKeyUserID est la clé utilisée pour stocker l'ID utilisateur dans le contexte Gin.
