@@ -1,4 +1,4 @@
-module github.com/pierreburbaud/cooking-home
+module github.com/Kitslap/HomeCooking
 
 go 1.22
 
