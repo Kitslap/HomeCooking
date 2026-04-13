@@ -227,18 +227,6 @@ docker compose up --build -d frontend
 
 ---
 
-## Roadmap
-
-- [ ] Meal planning (weekly calendar)
-- [ ] Recipe → shopping list generation (compare recipe ingredients vs. pantry)
-- [ ] Image upload for recipes
-- [ ] Multi-user support with household sharing
-- [ ] PWA / offline support
-- [ ] Import recipes from URL (scraping)
-- [ ] Barcode scanning for pantry items
-
----
-
 ## Contributing
 
 Contributions are welcome. Please open an issue before submitting a large PR so we can discuss the approach.
@@ -252,10 +240,10 @@ Contributions are welcome. Please open an issue before submitting a large PR so 
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](https://github.com/Kitslap/HomeCooking/blob/main/LICENSE) for details.
 
 ---
 
 <div align="center">
-  Made with ☕ for home cooks who like clean code.
+  Made with Claude & ☕ for home cooks who like clean code.
 </div>
