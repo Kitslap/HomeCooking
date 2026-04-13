@@ -9,7 +9,6 @@ Built with a Go backend, React frontend, and SQLite for zero-dependency storage.
 <!-- Screenshot: app overview (dashboard on desktop) -->
 ![alt text](https://github.com/Kitslap/HomeCooking/blob/main/image.jpg?raw=true)
 <!-- Suggested tool: browser at http://localhost:3000, full-page screenshot -->
-> _Add a screenshot of the dashboard here to show the app at a glance._
 
 ---
 
