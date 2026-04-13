@@ -1,0 +1,84 @@
+import { useState } from "react"
+import { auth, setToken } from "@/lib/api"
+
+export default function Auth({ onLogin }: { onLogin: () => void }) {
+  const [mode, setMode] = useState<"login" | "register">("login")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setError(""); setLoading(true)
+    try {
+      const fn = mode === "login" ? auth.login : auth.register
+      const res = await fn(email, password)
+      setToken(res.access_token); onLogin()
+    } catch (err: any) { setError(err.message || "Erreur") }
+    finally { setLoading(false) }
+  }
+
+  const inp = "w-full rounded-lg px-4 py-3 text-sm outline-none transition-all"
+  const inpStyle = { background: "#1a1410", border: "1px solid #2e2418", color: "#f0e8dc" }
+  const inpFocus = { borderColor: "#d4734a" }
+
+  return (
+    <div className="flex h-screen items-center justify-center px-4" style={{ background: "#0e0c0b" }}>
+      <div className="w-full max-w-sm" style={{ background: "#141210", border: "1px solid #2a2018", borderRadius: "16px", padding: "28px" }}>
+
+        {/* Logo */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
+            style={{ background: "linear-gradient(135deg, #d4734a, #b85a34)", color: "#fff" }}>
+            CH
+          </div>
+          <div>
+            <div className="font-semibold" style={{ color: "#f0e8dc", fontSize: "15px" }}>Cooking Home</div>
+            <div style={{ color: "#6a5040", fontSize: "11px" }}>{mode === "login" ? "Connexion à votre espace" : "Créer un compte"}</div>
+          </div>
+        </div>
+
+        <form onSubmit={submit} className="flex flex-col gap-3">
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#8a7060" }}>Email</label>
+            <input value={email} onChange={e => setEmail(e.target.value)}
+              type="email" placeholder="vous@exemple.com" required className={inp}
+              style={inpStyle}
+              onFocus={e => Object.assign(e.target.style, inpFocus)}
+              onBlur={e => Object.assign(e.target.style, { borderColor: "#2e2418" })} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#8a7060" }}>Mot de passe</label>
+            <input value={password} onChange={e => setPassword(e.target.value)}
+              type="password" placeholder={mode === "register" ? "10 caractères minimum" : "••••••••••"} required minLength={10} className={inp}
+              style={inpStyle}
+              onFocus={e => Object.assign(e.target.style, inpFocus)}
+              onBlur={e => Object.assign(e.target.style, { borderColor: "#2e2418" })} />
+          </div>
+
+          {error && (
+            <div className="rounded-lg px-3 py-2.5 text-sm" style={{ background: "#c8505018", border: "1px solid #c8505030", color: "#e07070" }}>
+              {error}
+            </div>
+          )}
+
+          <button type="submit" disabled={loading}
+            className="mt-2 w-full py-3 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, #d4734a, #c05e38)", color: "#fff" }}>
+            {loading ? "Chargement…" : mode === "login" ? "Se connecter" : "Créer mon compte"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center" style={{ borderTop: "1px solid #2a2018", paddingTop: "20px" }}>
+          <button onClick={() => { setMode(m => m === "login" ? "register" : "login"); setError("") }}
+            className="text-xs transition-colors"
+            style={{ color: "#6a5040" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#6a5040")}>
+            {mode === "login" ? "Pas encore de compte → S'inscrire" : "Déjà un compte → Se connecter"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

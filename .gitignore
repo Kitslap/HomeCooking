@@ -20,3 +20,7 @@ Thumbs.db
 
 # Logs
 *.log
+frontend/dist/
+cooking-home-v2.html
+frontend/node_modules/
+frontend/pnpm-lock.yaml
