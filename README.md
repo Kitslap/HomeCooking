@@ -37,35 +37,6 @@ The Go backend uses [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite) — 
 
 ---
 
-## Screenshots
-
-<!-- 📸 SCREENSHOT BLOCK — Replace placeholders with actual images -->
-<!-- Format: ![alt text](docs/screenshots/filename.png) -->
-
-### Dashboard
-
-<!-- 📸 Desktop: stats cards + recent recipes + low-stock alerts -->
-<!-- 📸 Mobile: stacked cards, bottom nav visible -->
-
-### Recipes
-
-<!-- 📸 Desktop: split panel — recipe list on left, detail on right -->
-<!-- 📸 Mobile: recipe list view -->
-<!-- 📸 Mobile: recipe detail with ← Retour button -->
-<!-- 📸 Create/edit modal with ingredients and steps -->
-
-### Pantry inventory
-
-<!-- 📸 Desktop: table view with +/− quantity buttons, level badges -->
-<!-- 📸 Mobile: card view per item -->
-<!-- 📸 Add item modal (bottom sheet on mobile) -->
-
-### Authentication
-
-<!-- 📸 Login / register screen (mobile-friendly card) -->
-
----
-
 ## Getting Started
 
 ### Prerequisites
