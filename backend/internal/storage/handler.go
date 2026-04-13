@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 
-	"github.com/pierreburbaud/cooking-home/internal/middleware"
+	"github.com/Kitslap/HomeCooking/internal/middleware"
 )
 
 // RegisterRoutes enregistre l'ensemble des routes de l'inventaire sur le groupe fourni.
