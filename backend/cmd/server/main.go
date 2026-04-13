@@ -23,12 +23,12 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/pierreburbaud/cooking-home/internal/auth"
-	"github.com/pierreburbaud/cooking-home/internal/config"
-	"github.com/pierreburbaud/cooking-home/internal/db"
-	"github.com/pierreburbaud/cooking-home/internal/middleware"
-	"github.com/pierreburbaud/cooking-home/internal/recipe"
-	"github.com/pierreburbaud/cooking-home/internal/storage"
+	"github.com/Kitslap/HomeCooking/internal/auth"
+	"github.com/Kitslap/HomeCooking/internal/config"
+	"github.com/Kitslap/HomeCooking/internal/db"
+	"github.com/Kitslap/HomeCooking/internal/middleware"
+	"github.com/Kitslap/HomeCooking/internal/recipe"
+	"github.com/Kitslap/HomeCooking/internal/storage"
 )
 
 func main() {
