@@ -1,157 +1,158 @@
 <div align="center">
   <img src="home_cooking_logo_transparent.png" alt="Home Cooking" width="360" />
   <br /><br />
-  <em>Self-hosted kitchen management - recipes, pantry, and shopping list in one place.</em>
+  <em>Gestion de cuisine auto-hébergée - recettes, garde-manger et liste de courses en un seul endroit.</em>
   <br /><br />
-  A personal web app to manage your recipe library and track your pantry inventory.<br />
-  Built with Go and React, fully containerized, zero cloud dependency.
-    <br /><br />
+  Une application web personnelle pour gérer votre bibliothèque de recettes et suivre votre inventaire.<br />
+  Développée en Go et React, entièrement conteneurisée, aucune dépendance cloud.
+  <br /><br />
+  <a href="README_EN.md">🇬🇧 English version</a>
 </div>
 
 <div align="center">
-  <img src="screens/auth_page.png" alt="Login" width="360" />
+  <img src="screens/auth_page.png" alt="Connexion" width="360" />
   <br /><br />
-  <img src="screens/dashboard.png" alt="Dashboard" width="360" />
-  <br /><br />
-  <img src="screens/recettes.png" alt="Recipes" width="270" />
+  <img src="screens/dashboard.png" alt="Tableau de bord" width="270" />
   &nbsp;
-  <img src="screens/inventaire.png" alt="Pantry" width="270" />
+  <img src="screens/recettes.png" alt="Recettes" width="270" />
+  &nbsp;
+  <img src="screens/inventaire.png" alt="Inventaire" width="270" />
 </div>
 
 ---
 
-## Features
+## Fonctionnalités
 
-- **Recipe library**: full CRUD with full-text search (SQLite FTS5), ingredients, step-by-step instructions, difficulty, tags, prep and cook times
-- **Pantry inventory**: track quantities with ±1 adjustments, expiry dates, per-category filters, and automatic low-stock alerts
-- **Shopping list**: auto-generated from low-stock items
-- **Secure authentication**: short-lived JWT access token (15 min) + httpOnly refresh token (7 days) with server-side revocation
-- **Responsive**: collapsible sidebar on desktop, bottom navigation on mobile
-- **Self-hosted**: single command to start, SQLite for storage, no external service required
+- **Bibliothèque de recettes** : CRUD complet avec recherche plein texte (SQLite FTS5), ingrédients, instructions étape par étape, difficulté, tags, temps de préparation et de cuisson
+- **Inventaire / garde-manger** : suivi des quantités avec ajustements ±1, dates de péremption, filtres par catégorie et alertes de stock bas automatiques
+- **Liste de courses** : générée automatiquement à partir des articles en stock bas
+- **Authentification sécurisée** : access token JWT courte durée (15 min) + refresh token httpOnly (7 jours) avec révocation côté serveur
+- **Responsive** : barre latérale rétractable sur desktop, navigation en bas sur mobile
+- **Auto-hébergé** : une seule commande pour démarrer, SQLite pour le stockage, aucun service externe requis
 
 ---
 
-## Stack
+## Stack technique
 
-| | Technology |
+| | Technologie |
 |---|---|
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
 | **Backend** | Go 1.22, Gin, zerolog |
 | **Auth** | JWT HS256 · bcrypt cost 12 · double-token |
-| **Database** | SQLite: WAL mode, FTS5, embedded migrations |
-| **Proxy** | nginx 1.27: reverse proxy + SPA serving |
-| **Runtime** | Docker / Podman (rootless compatible) |
+| **Base de données** | SQLite : mode WAL, FTS5, migrations embarquées |
+| **Proxy** | nginx 1.27 : reverse proxy + serveur SPA |
+| **Exécution** | Docker / Podman (compatible rootless) |
 
-The Go binary uses [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite); a pure Go SQLite driver, no CGO. The final image is built on `scratch` (zero OS).
+Le binaire Go utilise [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite) ; un driver SQLite pur Go, sans CGO. L'image finale est construite sur `scratch` (zéro OS).
 
 ---
 
-## Getting Started
+## Démarrage rapide
 
-### Prerequisites
+### Prérequis
 
-- [Docker](https://docs.docker.com/get-docker/) ≥ 24 **or** [Podman](https://podman.io/) ≥ 4 with `podman-compose`
+- [Docker](https://docs.docker.com/get-docker/) ≥ 24 **ou** [Podman](https://podman.io/) ≥ 4 avec `podman-compose`
 
-### 1. Clone
+### 1. Cloner
 
 ```bash
 git clone https://github.com/Kitslap/HomeCooking.git
 cd HomeCooking
 ```
 
-### 2. Configure
+### 2. Configurer
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and set a strong secret:
+Éditez `.env` et définissez un secret fort :
 
 ```env
-JWT_SECRET=your-very-long-random-secret-here   # minimum 32 characters
+JWT_SECRET=votre-secret-long-et-aleatoire   # minimum 32 caractères
 FRONTEND_PORT=3000
 ```
 
-Or generate and inject in one command:
+Ou générer et injecter en une commande :
 ```bash
 echo "JWT_SECRET=$(openssl rand -hex 64)" >> .env
 ```
 
-> ⚠️ The app will refuse to start if `JWT_SECRET` is missing or too short.
+> ⚠️ L'application refusera de démarrer si `JWT_SECRET` est absent ou trop court.
 
-### 3. Run
+### 3. Lancer
 
-**Docker:**
+**Docker :**
 ```bash
 docker compose up --build -d
 ```
 
-**Podman:**
+**Podman :**
 ```bash
 podman compose -f docker-compose.yml up --build -d
 ```
 
-Open **http://localhost:3000** to access the application.
+Ouvrez **http://localhost:3000** pour accéder à l'application.
 
-### 4. Initial Setup
+### 4. Configuration initiale
 
-On the first launch, the **setup wizard** will guide you through creating the administrator account. This wizard is only available once; as soon as the first user is created, the `/setup` endpoint is permanently locked.
+Au premier lancement, l'**assistant de configuration** vous guidera pour créer le compte administrateur. Cet assistant n'est disponible qu'une seule fois ; dès que le premier utilisateur est créé, le endpoint `/setup` est verrouillé définitivement.
 
 <div align="center">
-  <img src="screens/setup.png" alt="Setup wizard" width="600" />
+  <img src="screens/setup.png" alt="Assistant de configuration" width="600" />
 </div>
 
-The setup creates an admin account with full privileges. Additional users can only be created by an admin via the protected `/auth/register` endpoint.
+Le setup crée un compte admin avec tous les privilèges. Les utilisateurs supplémentaires ne peuvent être créés que par un admin via le endpoint protégé `/auth/register`.
 
-### 5. Start & Stop
+### 5. Démarrer et arrêter
 
 ```bash
-# Stop the stack
+# Arrêter la stack
 docker compose down          # Docker
 podman compose down          # Podman
 
-# Restart (no rebuild)
+# Redémarrer (sans rebuild)
 docker compose up -d         # Docker
 podman compose up -d         # Podman
 ```
 
-> Data is persisted in a Docker volume (`home-cooking-sqlite`). Running `down` does not delete the database. To fully reset: `docker compose down -v`.
+> Les données sont persistées dans un volume Docker (`home-cooking-sqlite`). La commande `down` ne supprime pas la base de données. Pour tout réinitialiser : `docker compose down -v`.
 
 ---
 
-## Project Structure
+## Structure du projet
 
 ```
 HomeCooking/
 │
-├── backend/                        # Go API
-│   ├── cmd/server/main.go          # Entry point, router, graceful shutdown
+├── backend/                        # API Go
+│   ├── cmd/server/main.go          # Point d'entrée, routeur, arrêt gracieux
 │   ├── internal/
-│   │   ├── auth/                   # JWT, bcrypt, login handlers, admin registration
-│   │   ├── config/                 # Typed config from environment
-│   │   ├── db/                     # SQLite connection + embedded migrations
-│   │   │   └── migrations/         # SQL files (001_init.sql, …)
-│   │   ├── middleware/             # CORS, rate limiter, JWT auth, security headers, logger
-│   │   ├── recipe/                 # Recipe CRUD: handler + repository
-│   │   ├── setup/                  # First-launch wizard: admin account creation
-│   │   └── storage/               # Pantry CRUD: handler + repository
+│   │   ├── auth/                   # JWT, bcrypt, handlers login, inscription admin
+│   │   ├── config/                 # Config typée depuis l'environnement
+│   │   ├── db/                     # Connexion SQLite + migrations embarquées
+│   │   │   └── migrations/         # Fichiers SQL (001_init.sql, …)
+│   │   ├── middleware/             # CORS, rate limiter, JWT auth, headers sécu, logger
+│   │   ├── recipe/                 # CRUD recettes : handler + repository
+│   │   ├── setup/                  # Assistant premier lancement : création compte admin
+│   │   └── storage/               # CRUD garde-manger : handler + repository
 │   ├── go.mod
 │   ├── go.sum
-│   └── Dockerfile                  # Multi-stage: golang:alpine → scratch
+│   └── Dockerfile                  # Multi-stage : golang:alpine → scratch
 │
-├── frontend/                       # React SPA
+├── frontend/                       # SPA React
 │   ├── src/
-│   │   ├── pages/                  # Dashboard, Recipes, Storage, Auth, Setup
-│   │   ├── components/             # Layout, UI primitives
-│   │   └── lib/api.ts              # Typed HTTP client
-│   ├── docker/nginx.conf           # Reverse proxy config
+│   │   ├── pages/                  # Dashboard, Recettes, Inventaire, Auth, Setup
+│   │   ├── components/             # Layout, primitives UI
+│   │   └── lib/api.ts              # Client HTTP typé
+│   ├── docker/nginx.conf           # Config reverse proxy
 │   ├── package.json
 │   ├── vite.config.ts
-│   └── Dockerfile                  # Multi-stage: node:alpine (build) → nginx:alpine
+│   └── Dockerfile                  # Multi-stage : node:alpine (build) → nginx:alpine
 │
-├── docker-compose.yml              # Production stack
-├── docker-compose.dev.yml          # Development overrides
-├── .env.example                    # Environment template
+├── docker-compose.yml              # Stack production
+├── docker-compose.dev.yml          # Overrides développement
+├── .env.example                    # Template d'environnement
 └── README.md
 ```
 
@@ -159,101 +160,101 @@ HomeCooking/
 
 ## API
 
-All routes are prefixed `/api/v1`. Protected routes require `Authorization: Bearer <token>`.
+Toutes les routes sont préfixées `/api/v1`. Les routes protégées nécessitent `Authorization: Bearer <token>`.
 
-**Setup** (first launch only)
+**Setup** (premier lancement uniquement)
 
-| Method | Path | Auth | Description |
-|--------|------|:----:|-------------|
-| GET | `/setup/status` | | Check if setup is needed |
-| POST | `/setup` | | Create first admin account (locked after use) |
+| Méthode | Route | Auth | Description |
+|---------|-------|:----:|-------------|
+| GET | `/setup/status` | | Vérifier si le setup est nécessaire |
+| POST | `/setup` | | Créer le premier compte admin (verrouillé après usage) |
 
 **Auth**
 
-| Method | Path | Auth | Description |
-|--------|------|:----:|-------------|
-| POST | `/auth/login` | | Login → access + refresh token |
-| POST | `/auth/refresh` | | Rotate refresh token |
-| POST | `/auth/logout` | ✓ | Revoke session |
-| POST | `/auth/register` | ✓ admin | Create account (admin only) |
-| GET | `/me` | ✓ | Current user |
+| Méthode | Route | Auth | Description |
+|---------|-------|:----:|-------------|
+| POST | `/auth/login` | | Connexion → access + refresh token |
+| POST | `/auth/refresh` | | Rotation du refresh token |
+| POST | `/auth/logout` | ✓ | Révoquer la session |
+| POST | `/auth/register` | ✓ admin | Créer un compte (admin uniquement) |
+| GET | `/me` | ✓ | Utilisateur courant |
 
-**Recipes**
+**Recettes**
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/recipes` | List (search, pagination) |
-| POST | `/recipes` | Create |
-| GET | `/recipes/:id` | Detail |
-| PATCH | `/recipes/:id` | Update |
-| DELETE | `/recipes/:id` | Delete |
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/recipes` | Liste (recherche, pagination) |
+| POST | `/recipes` | Créer |
+| GET | `/recipes/:id` | Détail |
+| PATCH | `/recipes/:id` | Modifier |
+| DELETE | `/recipes/:id` | Supprimer |
 
-**Pantry**
+**Garde-manger**
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/storage` | List (filter, search) |
-| POST | `/storage` | Add item |
-| GET | `/storage/stats` | Stock statistics |
-| GET | `/storage/alerts` | Low-stock + expiring items |
-| GET | `/storage/shopping-list` | Auto shopping list |
-| GET | `/storage/:id` | Item detail |
-| PATCH | `/storage/:id` | Update item |
-| PATCH | `/storage/:id/quantity` | Adjust quantity (±delta) |
-| DELETE | `/storage/:id` | Delete item |
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/storage` | Liste (filtre, recherche) |
+| POST | `/storage` | Ajouter un article |
+| GET | `/storage/stats` | Statistiques de stock |
+| GET | `/storage/alerts` | Articles en stock bas + proches de la péremption |
+| GET | `/storage/shopping-list` | Liste de courses auto |
+| GET | `/storage/:id` | Détail d'un article |
+| PATCH | `/storage/:id` | Modifier un article |
+| PATCH | `/storage/:id/quantity` | Ajuster la quantité (±delta) |
+| DELETE | `/storage/:id` | Supprimer un article |
 
 ---
 
-## Security
+## Sécurité
 
-| Measure | Detail |
+| Mesure | Détail |
 |---|---|
-| Password hashing | bcrypt cost 12 |
-| Token strategy | Access token 15 min + httpOnly refresh 7 days |
-| Token revocation | Refresh tokens stored and invalidated server-side |
-| Enumeration protection | Timing-safe register endpoint |
-| Rate limiting | Per-IP token bucket (`golang.org/x/time/rate`) |
-| CORS | Strict origin whitelist |
-| HTTP headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP, HSTS (production) |
-| Docker image | `scratch` base; no shell, no OS utilities |
-| SQLite | WAL mode, `foreign_keys=on`, `busy_timeout=5000` |
+| Hachage des mots de passe | bcrypt cost 12 |
+| Stratégie de tokens | Access token 15 min + refresh httpOnly 7 jours |
+| Révocation des tokens | Refresh tokens stockés et invalidés côté serveur |
+| Protection anti-énumération | Endpoint d'inscription timing-safe |
+| Rate limiting | Token bucket par IP (`golang.org/x/time/rate`) |
+| CORS | Whitelist stricte des origines |
+| Headers HTTP | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP, HSTS (production) |
+| Image Docker | Base `scratch` ; pas de shell, pas d'utilitaires OS |
+| SQLite | Mode WAL, `foreign_keys=on`, `busy_timeout=5000` |
 
 ---
 
 ## Configuration
 
-| Variable | Default | Description |
+| Variable | Défaut | Description |
 |---|---|---|
-| `JWT_SECRET` | **required** | HMAC secret, min 32 chars |
-| `FRONTEND_PORT` | `3000` | Host port for the UI |
-| `PORT` | `8080` | Internal backend port |
-| `ENV` | `production` | `production` or `development` |
-| `DB_PATH` | `/data/home-cooking.db` | SQLite file path |
-| `CORS_ORIGINS` | `http://localhost:3000` | Allowed origins, comma-separated |
-| `JWT_ACCESS_TTL` | `15m` | Access token lifetime |
-| `JWT_REFRESH_TTL` | `7d` | Refresh token lifetime |
-| `RATE_LIMIT_RPS` | `20` | Requests/second per IP |
-| `RATE_LIMIT_BURST` | `40` | Burst allowance per IP |
+| `JWT_SECRET` | **requis** | Secret HMAC, min 32 caractères |
+| `FRONTEND_PORT` | `3000` | Port hôte pour l'UI |
+| `PORT` | `8080` | Port interne du backend |
+| `ENV` | `production` | `production` ou `development` |
+| `DB_PATH` | `/data/home-cooking.db` | Chemin du fichier SQLite |
+| `CORS_ORIGINS` | `http://localhost:3000` | Origines autorisées, séparées par des virgules |
+| `JWT_ACCESS_TTL` | `15m` | Durée de vie de l'access token |
+| `JWT_REFRESH_TTL` | `7d` | Durée de vie du refresh token |
+| `RATE_LIMIT_RPS` | `20` | Requêtes/seconde par IP |
+| `RATE_LIMIT_BURST` | `40` | Tolérance de burst par IP |
 
 ---
 
-## Contributing
+## Contribuer
 
-1. Fork the repo
-2. Create a branch: `git checkout -b feat/my-feature`
-3. Commit: `git commit -m "feat: describe your change"`
-4. Open a Pull Request
+1. Forkez le repo
+2. Créez une branche : `git checkout -b feat/ma-feature`
+3. Commitez : `git commit -m "feat: description du changement"`
+4. Ouvrez une Pull Request
 
-Please open an issue first for any significant change so we can align on approach.
+Merci d'ouvrir une issue d'abord pour tout changement significatif afin de s'aligner sur l'approche.
 
 ---
 
-## License
+## Licence
 
-MIT - see [LICENSE](https://github.com/Kitslap/HomeCooking?tab=MIT-1-ov-file) for details.
+MIT - voir [LICENSE](https://github.com/Kitslap/HomeCooking?tab=MIT-1-ov-file) pour les détails.
 
 ---
 
 <div align="center">
-Made for home cooks who like clean code.
+Fait pour les cuisiniers qui aiment le code propre.
 </div>
