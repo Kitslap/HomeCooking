@@ -6,6 +6,7 @@ import Setup from "@/pages/Setup"
 import Dashboard from "@/pages/Dashboard"
 import Recipes from "@/pages/Recipes"
 import Storage from "@/pages/Storage"
+import logoIcon from "@/assets/home_cooking_appicon.png"
 
 export type Page = "dashboard" | "recipes" | "storage"
 
@@ -26,10 +27,7 @@ export default function App() {
   if (setupNeeded === null) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ background: "#0e0c0b" }}>
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold animate-pulse"
-          style={{ background: "linear-gradient(135deg, #d4734a, #b85a34)", color: "#fff" }}>
-          CH
-        </div>
+        <img src={logoIcon} alt="Home Cooking" className="w-12 h-12 animate-pulse" />
       </div>
     )
   }

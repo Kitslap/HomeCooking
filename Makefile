@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Makefile racine — Cooking Home
+# Makefile racine — Home Cooking
 # Raccourcis Docker Compose pour le développement et la production.
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ build: setup
 start: setup
 	$(COMPOSE) up -d --build
 	@echo ""
-	@echo "✓ Cooking Home démarré → http://localhost:$$(grep FRONTEND_PORT .env | cut -d= -f2 || echo 3000)"
+	@echo "✓ Home Cooking démarré → http://localhost:$$(grep FRONTEND_PORT .env | cut -d= -f2 || echo 3000)"
 	@echo "  Backend API  → http://localhost:$$(grep FRONTEND_PORT .env | cut -d= -f2 || echo 3000)/api/v1"
 	@echo ""
 
@@ -85,10 +85,10 @@ backup-db:
 	@mkdir -p backups
 	@TS=$$(date +%Y%m%d_%H%M%S); \
 	 docker run --rm \
-	   -v cooking-home-sqlite:/data \
+	   -v home-cooking-sqlite:/data \
 	   -v $$(pwd)/backups:/backups \
-	   alpine sh -c "cp /data/cooking-home.db /backups/cooking-home_$$TS.db" && \
-	 echo "✓ Sauvegarde : backups/cooking-home_$$TS.db"
+	   alpine sh -c "cp /data/home-cooking.db /backups/home-cooking_$$TS.db" && \
+	 echo "✓ Sauvegarde : backups/home-cooking_$$TS.db"
 
 ## help
 help:

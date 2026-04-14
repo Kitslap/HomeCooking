@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Migration 001 — Schéma initial Cooking Home
+-- Migration 001 — Schéma initial Home Cooking
 -- Appliquée une seule fois au démarrage (gérée par internal/db/db.go).
 -- ─────────────────────────────────────────────────────────────────────────────
 

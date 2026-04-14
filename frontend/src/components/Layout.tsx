@@ -1,6 +1,7 @@
 import { useState } from "react"
 import type { ReactNode } from "react"
 import type { Page } from "@/App"
+import logoIcon from "@/assets/home_cooking_icon.png"
 
 interface LayoutProps {
   children: ReactNode
@@ -28,13 +29,10 @@ export default function Layout({ children, currentPage, onNavigate, onLogout }: 
 
         {/* Logo */}
         <div className="flex items-center gap-3 h-14 px-3 flex-shrink-0" style={{ borderBottom: "1px solid #2a2018" }}>
-          <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #d4734a 0%, #b85a34 100%)", color: "#fff" }}>
-            CH
-          </div>
+          <img src={logoIcon} alt="Home Cooking" className="w-8 h-8 rounded flex-shrink-0" />
           {!collapsed && (
             <div>
-              <div className="text-sm font-semibold tracking-wide" style={{ color: "#f0e8dc" }}>Cooking Home</div>
+              <div className="text-sm font-semibold tracking-wide" style={{ color: "#f0e8dc" }}>Home Cooking</div>
               <div className="text-xs" style={{ color: "#6a5040", fontSize: "10px" }}>Ma cuisine</div>
             </div>
           )}
@@ -85,11 +83,8 @@ export default function Layout({ children, currentPage, onNavigate, onLogout }: 
 
           {/* Mobile : logo */}
           <div className="flex items-center gap-2 md:hidden">
-            <div className="w-7 h-7 rounded flex items-center justify-center text-xs font-bold"
-              style={{ background: "linear-gradient(135deg, #d4734a, #b85a34)", color: "#fff" }}>
-              CH
-            </div>
-            <span className="text-sm font-semibold" style={{ color: "#f0e8dc" }}>Cooking Home</span>
+            <img src={logoIcon} alt="Home Cooking" className="w-7 h-7 rounded" />
+            <span className="text-sm font-semibold" style={{ color: "#f0e8dc" }}>Home Cooking</span>
           </div>
 
           {/* Desktop : titre page */}

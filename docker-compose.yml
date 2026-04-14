@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# docker-compose.yml — Cooking Home
+# docker-compose.yml — Home Cooking
 #
 # Usage :
 #   cp .env.example .env          # configurer JWT_SECRET
@@ -12,7 +12,7 @@
 #   frontend  — React + Nginx, port 3000 (point d'entrée unique)
 # ─────────────────────────────────────────────────────────────────────────────
 
-name: cooking-home
+name: home-cooking
 
 services:
 
@@ -22,8 +22,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: runtime
-    image: cooking-home/backend:latest
-    container_name: cooking-home-backend
+    image: home-cooking/backend:latest
+    container_name: home-cooking-backend
 
     # Le backend n'est PAS exposé directement vers l'hôte en production.
     # Nginx proxifie /api/* vers ce service via le réseau interne.
@@ -35,8 +35,8 @@ services:
       PORT:             "8080"
       ENV:              "production"
       # JWT_SECRET, CORS_ORIGINS, etc. chargés depuis .env (voir env_file)
-      DB_PATH:          "/data/cooking-home.db"
-      CORS_ORIGINS:     "http://localhost:3000"
+      DB_PATH:          "/data/home-cooking.db"
+      CORS_ORIGINS:     "http://192.168.1.18:3000"
       JWT_ACCESS_TTL:   "15m"
       JWT_REFRESH_TTL:  "7d"
       RATE_LIMIT_RPS:   "20"
@@ -85,8 +85,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: cooking-home/frontend:latest
-    container_name: cooking-home-frontend
+    image: home-cooking/frontend:latest
+    container_name: home-cooking-frontend
 
     ports:
       # Point d'entrée unique accessible depuis l'hôte
@@ -129,19 +129,19 @@ services:
 # ── Volumes ────────────────────────────────────────────────────────────────────
 volumes:
   sqlite-data:
-    name: cooking-home-sqlite
+    name: home-cooking-sqlite
     driver: local
     # Pour monter un répertoire hôte spécifique, décommenter :
     # driver_opts:
     #   type: none
     #   o: bind
-    #   device: /opt/cooking-home/data
+    #   device: /opt/home-cooking/data
 
 
 # ── Réseau interne ─────────────────────────────────────────────────────────────
 networks:
   internal:
-    name: cooking-home-net
+    name: home-cooking-net
     driver: bridge
     # Isolation totale — le backend n'est accessible que via ce réseau
     internal: false   # false pour que nginx puisse résoudre DNS externe si besoin

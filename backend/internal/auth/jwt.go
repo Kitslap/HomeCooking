@@ -36,7 +36,7 @@ func GenerateAccessToken(userID int64, username, secret string, ttl time.Duratio
 		UserID:   userID,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "cooking-home",
+			Issuer:    "home-cooking",
 			Subject:   "access",
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
@@ -55,7 +55,7 @@ func GenerateRefreshToken(userID int64, secret string, ttl time.Duration) (strin
 		UserID:    userID,
 		TokenType: "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "cooking-home",
+			Issuer:    "home-cooking",
 			Subject:   "refresh",
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),

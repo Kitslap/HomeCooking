@@ -73,7 +73,7 @@ func Load() (Config, error) {
 	}
 
 	// ── Base de données ───────────────────────────────────────────────────
-	cfg.DBPath = envOrDefault("DB_PATH", "./data/cooking-home.db")
+	cfg.DBPath = envOrDefault("DB_PATH", "./data/home-cooking.db")
 
 	// ── CORS ──────────────────────────────────────────────────────────────
 	rawOrigins := envOrDefault("CORS_ORIGINS", "http://localhost:5173")

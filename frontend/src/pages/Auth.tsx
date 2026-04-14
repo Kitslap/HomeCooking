@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { auth, setToken } from "@/lib/api"
+import logoDark from "@/assets/home_cooking_logo_dark.png"
 
 export default function Auth({ onLogin }: { onLogin: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login")
@@ -27,15 +28,9 @@ export default function Auth({ onLogin }: { onLogin: () => void }) {
       <div className="w-full max-w-sm" style={{ background: "#141210", border: "1px solid #2a2018", borderRadius: "16px", padding: "28px" }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
-            style={{ background: "linear-gradient(135deg, #d4734a, #b85a34)", color: "#fff" }}>
-            CH
-          </div>
-          <div>
-            <div className="font-semibold" style={{ color: "#f0e8dc", fontSize: "15px" }}>Cooking Home</div>
-            <div style={{ color: "#6a5040", fontSize: "11px" }}>{mode === "login" ? "Connexion à votre espace" : "Créer un compte"}</div>
-          </div>
+        <div className="flex flex-col items-center mb-8">
+          <img src={logoDark} alt="Home Cooking" className="w-40 mb-3" />
+          <div style={{ color: "#6a5040", fontSize: "11px" }}>{mode === "login" ? "Connexion à votre espace" : "Créer un compte"}</div>
         </div>
 
         <form onSubmit={submit} className="flex flex-col gap-3">

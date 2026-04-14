@@ -2,7 +2,7 @@
 .env
 
 # Binaires Go compilés
-backend/cooking-home
+backend/home-cooking
 backend/*.exe
 
 # SQLite (données locales)
@@ -11,8 +11,8 @@ backend/*.exe
 *.db-shm
 
 # Node (si tu rebuildes le front en local)
-cooking-home-src/node_modules/
-cooking-home-src/dist/
+home-cooking-src/node_modules/
+home-cooking-src/dist/
 
 # Fichiers système
 .DS_Store
@@ -21,6 +21,6 @@ Thumbs.db
 # Logs
 *.log
 frontend/dist/
-cooking-home-v2.html
+home-cooking-v2.html
 frontend/node_modules/
 frontend/pnpm-lock.yaml

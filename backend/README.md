@@ -1,4 +1,4 @@
-# Cooking Home — Backend Gateway (Go)
+# Home Cooking — Backend Gateway (Go)
 
 API REST sécurisée alimentant le frontend React.  
 Stack : **Go 1.22 · Gin · JWT · bcrypt · SQLite (CGO-free)**

@@ -1,5 +1,5 @@
-# ── Cooking Home — Makefile ───────────────────────────────────────────────
-BINARY    := cooking-home-server
+# ── Home Cooking — Makefile ───────────────────────────────────────────────
+BINARY    := home-cooking-server
 BUILD_DIR := ./bin
 CMD       := ./cmd/server
 

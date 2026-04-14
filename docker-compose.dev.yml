@@ -12,7 +12,7 @@
 #   - ENV=development sur le backend (logs colorés, pas de HSTS)
 # ─────────────────────────────────────────────────────────────────────────────
 
-name: cooking-home
+name: home-cooking
 
 services:
 

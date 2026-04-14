@@ -1,4 +1,4 @@
-// Package main est le point d'entrée de la gateway Cooking Home.
+// Package main est le point d'entrée de la gateway Home Cooking.
 //
 // Démarrage :
 //

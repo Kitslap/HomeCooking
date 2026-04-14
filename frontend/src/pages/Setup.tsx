@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { setupApi, setToken } from "@/lib/api"
+import logoDark from "@/assets/home_cooking_logo_dark.png"
 
 interface SetupProps {
   onComplete: () => void
@@ -142,11 +143,7 @@ export default function Setup({ onComplete }: SetupProps) {
 
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex w-16 h-16 rounded-2xl items-center justify-center text-2xl font-bold mb-4"
-            style={{ background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`, color: "#fff", boxShadow: "0 8px 32px rgba(212,115,74,0.25)" }}>
-            CH
-          </div>
-          <div className="font-semibold text-lg" style={{ color: colors.text }}>Cooking Home</div>
+          <img src={logoDark} alt="Home Cooking" className="w-48 mx-auto mb-3" />
           <div className="text-xs mt-1" style={{ color: colors.textMuted }}>v0.1 — Configuration initiale</div>
         </div>
 
@@ -317,7 +314,7 @@ export default function Setup({ onComplete }: SetupProps) {
 
         {/* Footer */}
         <p className="text-center text-xs mt-5" style={{ color: colors.textMuted }}>
-          Cooking Home — self-hosted
+          Home Cooking — self-hosted
         </p>
       </div>
     </div>

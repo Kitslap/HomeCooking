@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Dockerfile — Cooking Home Backend (Go)
+# Dockerfile — Home Cooking Backend (Go)
 # Build multi-stage :
 #   Stage 1 "builder" : compile le binaire statique (CGO_ENABLED=0)
 #   Stage 2 "runtime" : image scratch (~0 Mo d'OS) — surface d'attaque minimale
@@ -72,7 +72,7 @@ VOLUME ["/data"]
 # Variables d'environnement par défaut (surchargées par docker-compose)
 ENV PORT=8080 \
     ENV=production \
-    DB_PATH=/data/cooking-home.db
+    DB_PATH=/data/home-cooking.db
 
 # Point d'entrée unique — pas de shell intermédiaire (forme exec)
 ENTRYPOINT ["/server"]
