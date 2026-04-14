@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="home_cooking_logo_transparent.png" alt="Home Cooking" width="280" />
+  <img src="home_cooking_logo_transparent.png" alt="Home Cooking" width="360" />
   <br /><br />
   <em>Self-hosted kitchen management — recipes, pantry, and shopping list in one place.</em>
   <br /><br />
