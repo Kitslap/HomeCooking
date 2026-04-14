@@ -7,6 +7,18 @@
   Built with Go and React, fully containerized, zero cloud dependency.
 </div>
 
+<div align="center">
+  <img src="screens/dashboard.png" alt="Dashboard" width="720" />
+  <br /><br />
+  <img src="screens/recettes.png" alt="Recipes" width="355" />
+  &nbsp;
+  <img src="screens/inventaire.png" alt="Pantry" width="355" />
+  <br /><br />
+  <img src="screens/setup.png" alt="Setup wizard" width="355" />
+  &nbsp;
+  <img src="screens/auth_page.png" alt="Login" width="355" />
+</div>
+
 ---
 
 ## Features
