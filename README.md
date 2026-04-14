@@ -8,15 +8,13 @@
 </div>
 
 <div align="center">
-  <img src="screens/dashboard.png" alt="Dashboard" width="720" />
+  <img src="screens/auth_page.png" alt="Login" width="360" />
   <br /><br />
-  <img src="screens/recettes.png" alt="Recipes" width="355" />
+  <img src="screens/dashboard.png" alt="Dashboard" width="270" />
   &nbsp;
-  <img src="screens/inventaire.png" alt="Pantry" width="355" />
-  <br /><br />
-  <img src="screens/setup.png" alt="Setup wizard" width="355" />
+  <img src="screens/recettes.png" alt="Recipes" width="270" />
   &nbsp;
-  <img src="screens/auth_page.png" alt="Login" width="355" />
+  <img src="screens/inventaire.png" alt="Pantry" width="270" />
 </div>
 
 ---
@@ -97,6 +95,10 @@ Open **http://localhost:3000** to access the application.
 ### 4. Initial Setup
 
 On the first launch, the **setup wizard** will guide you through creating the administrator account. This wizard is only available once; as soon as the first user is created, the `/setup` endpoint is permanently locked.
+
+<div align="center">
+  <img src="screens/setup.png" alt="Setup wizard" width="600" />
+</div>
 
 The setup creates an admin account with full privileges. Additional users can only be created by an admin via the protected `/auth/register` endpoint.
 
