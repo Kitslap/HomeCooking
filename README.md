@@ -39,26 +39,6 @@ The Go binary uses [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite) — a
 
 ---
 
-## Screenshots
-
-<!-- 📸 Add screenshots here once the app is running -->
-<!-- Suggested captures (save to docs/screenshots/): -->
-
-### Dashboard
-<!-- ![Dashboard desktop](docs/screenshots/dashboard-desktop.png) -->
-<!-- ![Dashboard mobile](docs/screenshots/dashboard-mobile.png) -->
-
-### Recipes
-<!-- ![Recipe list](docs/screenshots/recipes-list.png) -->
-<!-- ![Recipe detail](docs/screenshots/recipes-detail.png) -->
-<!-- ![Create recipe](docs/screenshots/recipes-create.png) -->
-
-### Pantry
-<!-- ![Pantry desktop](docs/screenshots/pantry-desktop.png) -->
-<!-- ![Pantry mobile](docs/screenshots/pantry-mobile.png) -->
-
----
-
 ## Getting Started
 
 ### Prerequisites
@@ -146,33 +126,6 @@ HomeCooking/
 
 ---
 
-## Building from Source
-
-### Backend
-
-```bash
-cd backend
-go mod download
-go build -o home-cooking ./cmd/server
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run build
-# output: frontend/dist/
-```
-
-Then rebuild the Docker image to pick up your changes:
-
-```bash
-docker compose up --build -d frontend
-```
-
----
-
 ## API
 
 All routes are prefixed `/api/v1`. Protected routes require `Authorization: Bearer <token>`.
@@ -243,6 +196,18 @@ All routes are prefixed `/api/v1`. Protected routes require `Authorization: Bear
 | `JWT_REFRESH_TTL` | `7d` | Refresh token lifetime |
 | `RATE_LIMIT_RPS` | `20` | Requests/second per IP |
 | `RATE_LIMIT_BURST` | `40` | Burst allowance per IP |
+
+---
+
+## Roadmap
+
+- [ ] Meal planning — weekly calendar
+- [ ] Recipe → shopping list (compare ingredients vs. pantry)
+- [ ] Recipe image upload
+- [ ] PWA / offline support
+- [ ] Barcode scanning for pantry items
+- [ ] Import recipe from URL
+- [ ] Multi-user / household sharing
 
 ---
 
