@@ -64,15 +64,6 @@ export default function Auth({ onLogin }: { onLogin: () => void }) {
           </button>
         </form>
 
-        <div className="mt-6 text-center" style={{ borderTop: "1px solid #2a2018", paddingTop: "20px" }}>
-          <button onClick={() => { setMode(m => m === "login" ? "register" : "login"); setError("") }}
-            className="text-xs transition-colors"
-            style={{ color: "#6a5040" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
-            onMouseLeave={e => (e.currentTarget.style.color = "#6a5040")}>
-            {mode === "login" ? "Pas encore de compte → S'inscrire" : "Déjà un compte → Se connecter"}
-          </button>
-        </div>
       </div>
     </div>
   )
