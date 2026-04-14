@@ -47,8 +47,8 @@ The Go backend uses [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite) — 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/pierreburbaud/cooking-home.git
-cd cooking-home
+git clone https://github.com/Kitslap/HomeCooking.git
+cd HomeCooking
 ```
 
 ### 2. Configure environment
