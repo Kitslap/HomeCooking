@@ -1,7 +1,7 @@
 <div align="center">
   <img src="home_cooking_logo_transparent.png" alt="Home Cooking" width="360" />
   <br /><br />
-  <em>Self-hosted kitchen management — recipes, pantry, and shopping list in one place.</em>
+  <em>Self-hosted kitchen management - recipes, pantry, and shopping list in one place.</em>
   <br /><br />
   A personal web app to manage your recipe library and track your pantry inventory.<br />
   Built with Go and React, fully containerized, zero cloud dependency.
@@ -11,12 +11,12 @@
 
 ## Features
 
-- **Recipe library** — Full CRUD with full-text search (SQLite FTS5), ingredients, step-by-step instructions, difficulty, tags, prep and cook times
-- **Pantry inventory** — Track quantities with ±1 adjustments, expiry dates, per-category filters, and automatic low-stock alerts
-- **Shopping list** — Auto-generated from low-stock items
-- **Secure authentication** — Short-lived JWT access token (15 min) + httpOnly refresh token (7 days) with server-side revocation
-- **Responsive** — Collapsible sidebar on desktop, bottom navigation on mobile
-- **Self-hosted** — Single command to start, SQLite for storage, no external service required
+- **Recipe library**: full CRUD with full-text search (SQLite FTS5), ingredients, step-by-step instructions, difficulty, tags, prep and cook times
+- **Pantry inventory**: track quantities with ±1 adjustments, expiry dates, per-category filters, and automatic low-stock alerts
+- **Shopping list**: auto-generated from low-stock items
+- **Secure authentication**: short-lived JWT access token (15 min) + httpOnly refresh token (7 days) with server-side revocation
+- **Responsive**: collapsible sidebar on desktop, bottom navigation on mobile
+- **Self-hosted**: single command to start, SQLite for storage, no external service required
 
 ---
 
@@ -27,11 +27,11 @@
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
 | **Backend** | Go 1.22, Gin, zerolog |
 | **Auth** | JWT HS256 · bcrypt cost 12 · double-token |
-| **Database** | SQLite — WAL mode, FTS5, embedded migrations |
-| **Proxy** | nginx 1.27 — reverse proxy + SPA serving |
+| **Database** | SQLite: WAL mode, FTS5, embedded migrations |
+| **Proxy** | nginx 1.27: reverse proxy + SPA serving |
 | **Runtime** | Docker / Podman (rootless compatible) |
 
-The Go binary uses [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite) — a pure Go SQLite driver, no CGO. The final image is built on `scratch` (zero OS).
+The Go binary uses [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite); a pure Go SQLite driver, no CGO. The final image is built on `scratch` (zero OS).
 
 ---
 
@@ -84,18 +84,18 @@ Open **http://localhost:3000** to access the application.
 
 ### 4. Initial Setup
 
-On the first launch, the **setup wizard** will guide you through creating the administrator account. This wizard is only available once — as soon as the first user is created, the `/setup` endpoint is permanently locked.
+On the first launch, the **setup wizard** will guide you through creating the administrator account. This wizard is only available once; as soon as the first user is created, the `/setup` endpoint is permanently locked.
 
 The setup creates an admin account with full privileges. Additional users can only be created by an admin via the protected `/auth/register` endpoint.
 
 ### 5. Start & Stop
 
 ```bash
-# Arrêter la stack
+# Stop the stack
 docker compose down          # Docker
 podman compose down          # Podman
 
-# Relancer (sans rebuild)
+# Restart (no rebuild)
 docker compose up -d         # Docker
 podman compose up -d         # Podman
 ```
@@ -117,9 +117,9 @@ HomeCooking/
 │   │   ├── db/                     # SQLite connection + embedded migrations
 │   │   │   └── migrations/         # SQL files (001_init.sql, …)
 │   │   ├── middleware/             # CORS, rate limiter, JWT auth, security headers, logger
-│   │   ├── recipe/                 # Recipe CRUD — handler + repository
-│   │   ├── setup/                  # First-launch wizard — admin account creation
-│   │   └── storage/               # Pantry CRUD — handler + repository
+│   │   ├── recipe/                 # Recipe CRUD: handler + repository
+│   │   ├── setup/                  # First-launch wizard: admin account creation
+│   │   └── storage/               # Pantry CRUD: handler + repository
 │   ├── go.mod
 │   ├── go.sum
 │   └── Dockerfile                  # Multi-stage: golang:alpine → scratch
@@ -200,7 +200,7 @@ All routes are prefixed `/api/v1`. Protected routes require `Authorization: Bear
 | Rate limiting | Per-IP token bucket (`golang.org/x/time/rate`) |
 | CORS | Strict origin whitelist |
 | HTTP headers | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, CSP, HSTS (production) |
-| Docker image | `scratch` base — no shell, no OS utilities |
+| Docker image | `scratch` base; no shell, no OS utilities |
 | SQLite | WAL mode, `foreign_keys=on`, `busy_timeout=5000` |
 
 ---
@@ -235,7 +235,7 @@ Please open an issue first for any significant change so we can align on approac
 
 ## License
 
-MIT — see [LICENSE](https://github.com/Kitslap/HomeCooking?tab=MIT-1-ov-file) for details.
+MIT - see [LICENSE](https://github.com/Kitslap/HomeCooking?tab=MIT-1-ov-file) for details.
 
 ---
 
