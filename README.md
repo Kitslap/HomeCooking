@@ -271,7 +271,7 @@ Please open an issue first for any significant change so we can align on approac
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [[LICENSE](LICENSE)](https://github.com/Kitslap/HomeCooking?tab=MIT-1-ov-file) for details.
 
 ---
 
