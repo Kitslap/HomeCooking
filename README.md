@@ -1,8 +1,11 @@
-# 🍳 Home Cooking
-
-> Self-hosted kitchen management — recipes, pantry, and shopping list in one place.
-
-A personal web app to manage your recipe library and track your pantry inventory. Built with Go and React, fully containerized, zero cloud dependency.
+<div align="center">
+  <img src="home_cooking_logo_transparent.png" alt="Home Cooking" width="280" />
+  <br /><br />
+  <em>Self-hosted kitchen management — recipes, pantry, and shopping list in one place.</em>
+  <br /><br />
+  A personal web app to manage your recipe library and track your pantry inventory.<br />
+  Built with Go and React, fully containerized, zero cloud dependency.
+</div>
 
 ---
 
