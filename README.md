@@ -5,13 +5,14 @@
   <br /><br />
   A personal web app to manage your recipe library and track your pantry inventory.<br />
   Built with Go and React, fully containerized, zero cloud dependency.
+    <br /><br />
 </div>
 
 <div align="center">
   <img src="screens/auth_page.png" alt="Login" width="360" />
   <br /><br />
-  <img src="screens/dashboard.png" alt="Dashboard" width="270" />
-  &nbsp;
+  <img src="screens/dashboard.png" alt="Dashboard" width="360" />
+  <br /><br />
   <img src="screens/recettes.png" alt="Recipes" width="270" />
   &nbsp;
   <img src="screens/inventaire.png" alt="Pantry" width="270" />
