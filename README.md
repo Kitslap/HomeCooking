@@ -100,7 +100,7 @@ docker compose up -d         # Docker
 podman compose up -d         # Podman
 ```
 
-> Les données sont persistées dans un volume Docker (`home-cooking-sqlite`). Un `down` n'efface pas la base. Pour tout réinitialiser : `docker compose down -v`.
+> Data is persisted in a Docker volume (`home-cooking-sqlite`). Running `down` does not delete the database. To fully reset: `docker compose down -v`.
 
 ---
 
