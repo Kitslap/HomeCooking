@@ -85,9 +85,9 @@ JWT_SECRET=your-very-long-random-secret-here   # minimum 32 characters
 FRONTEND_PORT=3000
 ```
 
-Generate a secure value with:
+Or generate and inject in one command:
 ```bash
-openssl rand -hex 64
+echo "JWT_SECRET=$(openssl rand -hex 64)" >> .env
 ```
 
 > ⚠️ The app will refuse to start if `JWT_SECRET` is missing or too short.
@@ -104,7 +104,13 @@ docker compose up --build -d
 podman compose -f docker-compose.yml up --build -d
 ```
 
-Open **http://localhost:3000**, register your account, and start cooking.
+Open **http://localhost:3000** to access the application.
+
+### 4. Initial Setup
+
+On the first launch, the **setup wizard** will guide you through creating the administrator account. This wizard is only available once — as soon as the first user is created, the `/setup` endpoint is permanently locked.
+
+The setup creates an admin account with full privileges. Additional users can only be created by an admin via the protected `/auth/register` endpoint.
 
 ---
 
@@ -116,12 +122,13 @@ HomeCooking/
 ├── backend/                        # Go API
 │   ├── cmd/server/main.go          # Entry point, router, graceful shutdown
 │   ├── internal/
-│   │   ├── auth/                   # JWT, bcrypt, login/register handlers
+│   │   ├── auth/                   # JWT, bcrypt, login handlers, admin registration
 │   │   ├── config/                 # Typed config from environment
 │   │   ├── db/                     # SQLite connection + embedded migrations
 │   │   │   └── migrations/         # SQL files (001_init.sql, …)
 │   │   ├── middleware/             # CORS, rate limiter, JWT auth, security headers, logger
 │   │   ├── recipe/                 # Recipe CRUD — handler + repository
+│   │   ├── setup/                  # First-launch wizard — admin account creation
 │   │   └── storage/               # Pantry CRUD — handler + repository
 │   ├── go.mod
 │   ├── go.sum
@@ -129,14 +136,13 @@ HomeCooking/
 │
 ├── frontend/                       # React SPA
 │   ├── src/
-│   │   ├── pages/                  # Dashboard, Recipes, Storage, Auth
+│   │   ├── pages/                  # Dashboard, Recipes, Storage, Auth, Setup
 │   │   ├── components/             # Layout, UI primitives
 │   │   └── lib/api.ts              # Typed HTTP client
-│   ├── dist/                       # Pre-built bundle (served by nginx)
 │   ├── docker/nginx.conf           # Reverse proxy config
 │   ├── package.json
 │   ├── vite.config.ts
-│   └── Dockerfile                  # nginx:alpine serving the bundle
+│   └── Dockerfile                  # Multi-stage: node:alpine (build) → nginx:alpine
 │
 ├── docker-compose.yml              # Production stack
 ├── docker-compose.dev.yml          # Development overrides
@@ -177,15 +183,22 @@ docker compose up --build -d frontend
 
 All routes are prefixed `/api/v1`. Protected routes require `Authorization: Bearer <token>`.
 
+**Setup** (first launch only)
+
+| Method | Path | Auth | Description |
+|--------|------|:----:|-------------|
+| GET | `/setup/status` | | Check if setup is needed |
+| POST | `/setup` | | Create first admin account (locked after use) |
+
 **Auth**
 
 | Method | Path | Auth | Description |
 |--------|------|:----:|-------------|
-| POST | `/auth/register` | | Create account |
 | POST | `/auth/login` | | Login → access + refresh token |
 | POST | `/auth/refresh` | | Rotate refresh token |
 | POST | `/auth/logout` | ✓ | Revoke session |
-| GET | `/auth/me` | ✓ | Current user |
+| POST | `/auth/register` | ✓ admin | Create account (admin only) |
+| GET | `/me` | ✓ | Current user |
 
 **Recipes**
 
