@@ -88,6 +88,20 @@ On the first launch, the **setup wizard** will guide you through creating the ad
 
 The setup creates an admin account with full privileges. Additional users can only be created by an admin via the protected `/auth/register` endpoint.
 
+### 5. Start & Stop
+
+```bash
+# Arrêter la stack
+docker compose down          # Docker
+podman compose down          # Podman
+
+# Relancer (sans rebuild)
+docker compose up -d         # Docker
+podman compose up -d         # Podman
+```
+
+> Les données sont persistées dans un volume Docker (`home-cooking-sqlite`). Un `down` n'efface pas la base. Pour tout réinitialiser : `docker compose down -v`.
+
 ---
 
 ## Project Structure
