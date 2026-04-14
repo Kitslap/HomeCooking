@@ -57,14 +57,19 @@ cd HomeCooking
 cp .env.example .env
 ```
 
-Open `.env` and set a strong `JWT_SECRET` (minimum 32 characters):
+Generate a strong `JWT_SECRET` and write it to `.env`:
+
+```bash
+echo "JWT_SECRET=$(openssl rand -hex 64)" >> .env
+```
+
+You can also set the frontend port (default `3000`):
 
 ```env
-JWT_SECRET=your-very-long-random-secret-key-here
 FRONTEND_PORT=3000
 ```
 
-> ⚠️ The app will refuse to start if `JWT_SECRET` is absent or too short.
+> ⚠️ The backend will refuse to start if `JWT_SECRET` is absent, uses the default placeholder value, or is shorter than 32 characters.
 
 ### 3. Start the app
 
