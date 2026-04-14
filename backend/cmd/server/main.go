@@ -28,6 +28,7 @@ import (
 	"github.com/Kitslap/HomeCooking/internal/db"
 	"github.com/Kitslap/HomeCooking/internal/middleware"
 	"github.com/Kitslap/HomeCooking/internal/recipe"
+	"github.com/Kitslap/HomeCooking/internal/setup"
 	"github.com/Kitslap/HomeCooking/internal/storage"
 )
 
@@ -99,8 +100,17 @@ func main() {
 	// Groupe API versionné
 	apiV1 := r.Group("/api/v1")
 
-	// Routes publiques — authentification
-	auth.RegisterRoutes(apiV1, auth.HandlerDeps{
+	// Dépendances partagées entre auth et setup
+	authDeps := auth.HandlerDeps{
+		DB:         database,
+		JWTSecret:  cfg.JWTSecret,
+		AccessTTL:  cfg.JWTAccessTTL,
+		RefreshTTL: cfg.JWTRefreshTTL,
+		IsProd:     !cfg.IsDev(),
+	}
+
+	// Routes publiques — setup initial (premier lancement uniquement)
+	setup.RegisterRoutes(apiV1, setup.Deps{
 		DB:         database,
 		JWTSecret:  cfg.JWTSecret,
 		AccessTTL:  cfg.JWTAccessTTL,
@@ -108,14 +118,20 @@ func main() {
 		IsProd:     !cfg.IsDev(),
 	})
 
+	// Routes publiques — authentification (login, refresh, logout)
+	auth.RegisterPublicRoutes(apiV1, authDeps)
+
 	// Routes protégées — JWT obligatoire sur tout le groupe
 	protected := apiV1.Group("", middleware.JWTAuth(cfg.JWTSecret))
 
-	// Stub de profil utilisateur (à déplacer dans un package dédié)
+	// Register protégé — seul un admin connecté peut créer de nouveaux comptes
+	auth.RegisterAdminRoutes(protected, authDeps)
+
+	// Profil utilisateur (à déplacer dans un package dédié)
 	protected.GET("/me", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"user_id": middleware.UserIDFromCtx(c),
-			"email":   middleware.EmailFromCtx(c),
+			"user_id":  middleware.UserIDFromCtx(c),
+			"username": middleware.UsernameFromCtx(c),
 		})
 	})
 

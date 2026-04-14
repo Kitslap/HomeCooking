@@ -3,7 +3,7 @@ import { auth, setToken } from "@/lib/api"
 
 export default function Auth({ onLogin }: { onLogin: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login")
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -12,7 +12,7 @@ export default function Auth({ onLogin }: { onLogin: () => void }) {
     e.preventDefault(); setError(""); setLoading(true)
     try {
       const fn = mode === "login" ? auth.login : auth.register
-      const res = await fn(email, password)
+      const res = await fn(username, password)
       setToken(res.access_token); onLogin()
     } catch (err: any) { setError(err.message || "Erreur") }
     finally { setLoading(false) }
@@ -40,9 +40,9 @@ export default function Auth({ onLogin }: { onLogin: () => void }) {
 
         <form onSubmit={submit} className="flex flex-col gap-3">
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: "#8a7060" }}>Email</label>
-            <input value={email} onChange={e => setEmail(e.target.value)}
-              type="email" placeholder="vous@exemple.com" required className={inp}
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#8a7060" }}>Nom d'utilisateur</label>
+            <input value={username} onChange={e => setUsername(e.target.value)}
+              type="text" placeholder="admin" required minLength={3} maxLength={32} className={inp}
               style={inpStyle}
               onFocus={e => Object.assign(e.target.style, inpFocus)}
               onBlur={e => Object.assign(e.target.style, { borderColor: "#2e2418" })} />

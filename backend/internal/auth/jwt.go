@@ -14,8 +14,8 @@ import (
 
 // AccessClaims est embarqué dans le JWT d'accès.
 type AccessClaims struct {
-	UserID int64  `json:"uid"`
-	Email  string `json:"email"`
+	UserID   int64  `json:"uid"`
+	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
 
@@ -30,11 +30,11 @@ type RefreshClaims struct {
 
 // GenerateAccessToken crée un JWT d'accès signé HS256.
 // Le secret doit faire au moins 32 octets (64 hex chars recommandé).
-func GenerateAccessToken(userID int64, email, secret string, ttl time.Duration) (string, error) {
+func GenerateAccessToken(userID int64, username, secret string, ttl time.Duration) (string, error) {
 	now := time.Now()
 	claims := AccessClaims{
-		UserID: userID,
-		Email:  email,
+		UserID:   userID,
+		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "cooking-home",
 			Subject:   "access",

@@ -25,13 +25,12 @@ type HandlerDeps struct {
 // ── Payloads ──────────────────────────────────────────────────────────────
 
 type registerInput struct {
-	Email    string `json:"email"    binding:"required,email,max=254"`
+	Username string `json:"username" binding:"required,min=3,max=32"`
 	Password string `json:"password" binding:"required,min=10,max=128"`
-	// Name sera ajouté ultérieurement (optionnel à l'inscription)
 }
 
 type loginInput struct {
-	Email    string `json:"email"    binding:"required,email"`
+	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -40,20 +39,52 @@ type tokenResponse struct {
 	ExpiresIn   int64  `json:"expires_in"` // secondes
 }
 
-// ── RegisterRoutes ────────────────────────────────────────────────────────
+// ── RegisterPublicRoutes ──────────────────────────────────────────────────
 
-// RegisterRoutes enregistre les routes d'authentification publiques sur le groupe fourni.
+// RegisterPublicRoutes enregistre les routes d'authentification publiques (sans JWT).
 //
-//	POST /auth/register — inscription
 //	POST /auth/login    — connexion
 //	POST /auth/refresh  — renouvellement de l'access token via refresh cookie
 //	POST /auth/logout   — révocation du refresh token
-func RegisterRoutes(r *gin.RouterGroup, deps HandlerDeps) {
+func RegisterPublicRoutes(r *gin.RouterGroup, deps HandlerDeps) {
 	g := r.Group("/auth")
-	g.POST("/register", registerHandler(deps))
-	g.POST("/login",    loginHandler(deps))
-	g.POST("/refresh",  refreshHandler(deps))
-	g.POST("/logout",   logoutHandler(deps))
+	g.POST("/login",   loginHandler(deps))
+	g.POST("/refresh", refreshHandler(deps))
+	g.POST("/logout",  logoutHandler(deps))
+}
+
+// ── RegisterAdminRoutes ──────────────────────────────────────────────────
+
+// RegisterAdminRoutes enregistre les routes d'authentification protégées.
+// Doit être appelé sur un groupe déjà protégé par JWTAuth.
+//
+//	POST /auth/register — création de compte (admin uniquement)
+func RegisterAdminRoutes(r *gin.RouterGroup, deps HandlerDeps) {
+	g := r.Group("/auth")
+	g.POST("/register", adminGuard(deps.DB), registerHandler(deps))
+}
+
+// adminGuard vérifie que l'utilisateur connecté a le rôle 'admin'.
+// Retourne 403 si ce n'est pas le cas.
+func adminGuard(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("userID")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "accès refusé"})
+			return
+		}
+
+		var role string
+		err := db.QueryRowContext(c.Request.Context(),
+			`SELECT role FROM users WHERE id = ?`, userID,
+		).Scan(&role)
+		if err != nil || role != "admin" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "droits administrateur requis"})
+			return
+		}
+
+		c.Next()
+	}
 }
 
 // ── Handlers ──────────────────────────────────────────────────────────────
@@ -68,20 +99,26 @@ func registerHandler(deps HandlerDeps) gin.HandlerFunc {
 			return
 		}
 
+		// Validation du format username : alphanum + ._-
+		if !isValidUsername(input.Username) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "nom d'utilisateur invalide (lettres, chiffres, ._- uniquement)"})
+			return
+		}
+
 		ctx := c.Request.Context()
 
-		// Vérification si l'email existe déjà (réponse identique à "succès"
+		// Vérification si le username existe déjà (réponse identique à "succès"
 		// pour éviter l'énumération de comptes — timing-safe via bcrypt delay)
-		exists, err := emailExists(ctx, deps.DB, input.Email)
+		exists, err := usernameExists(ctx, deps.DB, input.Username)
 		if err != nil {
-			log.Error().Err(err).Msg("register: vérification email")
+			log.Error().Err(err).Msg("register: vérification username")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
 			return
 		}
 		if exists {
 			// Délai artificiel identique au hash pour éviter le timing side-channel
 			bcrypt.GenerateFromPassword([]byte(input.Password), 12) //nolint:errcheck
-			c.JSON(http.StatusConflict, gin.H{"error": "email déjà utilisé"})
+			c.JSON(http.StatusConflict, gin.H{"error": "nom d'utilisateur déjà utilisé"})
 			return
 		}
 
@@ -93,18 +130,18 @@ func registerHandler(deps HandlerDeps) gin.HandlerFunc {
 			return
 		}
 
-		// Insertion en base
-		userID, err := createUser(ctx, deps.DB, input.Email, string(hash))
+		// Insertion en base (role = 'user' par défaut pour les comptes créés via register)
+		userID, err := createUser(ctx, deps.DB, input.Username, string(hash))
 		if err != nil {
 			log.Error().Err(err).Msg("register: insertion utilisateur")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
 			return
 		}
 
-		log.Info().Int64("user_id", userID).Str("email", input.Email).Msg("register: nouvel utilisateur créé")
+		log.Info().Int64("user_id", userID).Str("username", input.Username).Msg("register: nouvel utilisateur créé")
 
 		// Retourne directement une paire de tokens pour une UX fluide
-		issueTokenPair(c, deps, userID, input.Email)
+		issueTokenPair(c, deps, userID, input.Username)
 	}
 }
 
@@ -120,9 +157,9 @@ func loginHandler(deps HandlerDeps) gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		// Récupération de l'utilisateur
-		user, err := getUserByEmail(ctx, deps.DB, input.Email)
+		user, err := getUserByUsername(ctx, deps.DB, input.Username)
 		if err != nil {
-			// Réponse identique quel que soit le cas (email inconnu ou mdp erroné)
+			// Réponse identique quel que soit le cas (username inconnu ou mdp erroné)
 			// pour éviter l'énumération de comptes
 			bcrypt.CompareHashAndPassword([]byte("$2a$12$placeholder"), []byte(input.Password)) //nolint:errcheck
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "identifiants incorrects"})
@@ -137,7 +174,7 @@ func loginHandler(deps HandlerDeps) gin.HandlerFunc {
 		}
 
 		log.Info().Int64("user_id", user.ID).Msg("login: authentification réussie")
-		issueTokenPair(c, deps, user.ID, user.Email)
+		issueTokenPair(c, deps, user.ID, user.Username)
 	}
 }
 
@@ -163,7 +200,7 @@ func refreshHandler(deps HandlerDeps) gin.HandlerFunc {
 			return
 		}
 
-		// Récupération de l'email courant
+		// Récupération du username courant
 		user, err := getUserByID(c.Request.Context(), deps.DB, claims.UserID)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "utilisateur introuvable"})
@@ -171,7 +208,7 @@ func refreshHandler(deps HandlerDeps) gin.HandlerFunc {
 		}
 
 		// Rotation : révoque l'ancien, émet un nouveau
-		issueTokenPair(c, deps, user.ID, user.Email)
+		issueTokenPair(c, deps, user.ID, user.Username)
 	}
 }
 
@@ -192,8 +229,8 @@ func logoutHandler(deps HandlerDeps) gin.HandlerFunc {
 
 // issueTokenPair génère une paire access/refresh, stocke le refresh en base
 // et le pose dans un cookie httpOnly.
-func issueTokenPair(c *gin.Context, deps HandlerDeps, userID int64, email string) {
-	accessToken, err := GenerateAccessToken(userID, email, deps.JWTSecret, deps.AccessTTL)
+func issueTokenPair(c *gin.Context, deps HandlerDeps, userID int64, username string) {
+	accessToken, err := GenerateAccessToken(userID, username, deps.JWTSecret, deps.AccessTTL)
 	if err != nil {
 		log.Error().Err(err).Msg("issueTokenPair: access token")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
@@ -235,21 +272,35 @@ func issueTokenPair(c *gin.Context, deps HandlerDeps, userID int64, email string
 
 type dbUser struct {
 	ID           int64
-	Email        string
+	Username     string
 	PasswordHash string
 }
 
-func emailExists(ctx context.Context, db *sql.DB, email string) (bool, error) {
+// isValidUsername vérifie le format du nom d'utilisateur : 3-32 caractères,
+// uniquement lettres, chiffres, points, tirets et underscores.
+func isValidUsername(username string) bool {
+	if len(username) < 3 || len(username) > 32 {
+		return false
+	}
+	for _, r := range username {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '.' || r == '_' || r == '-') {
+			return false
+		}
+	}
+	return true
+}
+
+func usernameExists(ctx context.Context, db *sql.DB, username string) (bool, error) {
 	var count int
 	err := db.QueryRowContext(ctx,
-		`SELECT COUNT(1) FROM users WHERE email = ?`, email,
+		`SELECT COUNT(1) FROM users WHERE username = ?`, username,
 	).Scan(&count)
 	return count > 0, err
 }
 
-func createUser(ctx context.Context, db *sql.DB, email, passwordHash string) (int64, error) {
+func createUser(ctx context.Context, db *sql.DB, username, passwordHash string) (int64, error) {
 	res, err := db.ExecContext(ctx,
-		`INSERT INTO users (email, password_hash) VALUES (?, ?)`, email, passwordHash,
+		`INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'user')`, username, passwordHash,
 	)
 	if err != nil {
 		return 0, err
@@ -257,19 +308,19 @@ func createUser(ctx context.Context, db *sql.DB, email, passwordHash string) (in
 	return res.LastInsertId()
 }
 
-func getUserByEmail(ctx context.Context, db *sql.DB, email string) (dbUser, error) {
+func getUserByUsername(ctx context.Context, db *sql.DB, username string) (dbUser, error) {
 	var u dbUser
 	err := db.QueryRowContext(ctx,
-		`SELECT id, email, password_hash FROM users WHERE email = ?`, email,
-	).Scan(&u.ID, &u.Email, &u.PasswordHash)
+		`SELECT id, username, password_hash FROM users WHERE username = ?`, username,
+	).Scan(&u.ID, &u.Username, &u.PasswordHash)
 	return u, err
 }
 
 func getUserByID(ctx context.Context, db *sql.DB, id int64) (dbUser, error) {
 	var u dbUser
 	err := db.QueryRowContext(ctx,
-		`SELECT id, email, password_hash FROM users WHERE id = ?`, id,
-	).Scan(&u.ID, &u.Email, &u.PasswordHash)
+		`SELECT id, username, password_hash FROM users WHERE id = ?`, id,
+	).Scan(&u.ID, &u.Username, &u.PasswordHash)
 	return u, err
 }
 

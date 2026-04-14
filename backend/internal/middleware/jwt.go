@@ -8,11 +8,8 @@ import (
 	authjwt "github.com/Kitslap/HomeCooking/internal/auth"
 )
 
-// ctxKeyUserID est la clé utilisée pour stocker l'ID utilisateur dans le contexte Gin.
-type ctxKeyUserID struct{}
-
-const CtxKeyUserID = "userID"
-const CtxKeyEmail  = "email"
+const CtxKeyUserID   = "userID"
+const CtxKeyUsername = "username"
 
 // JWTAuth valide le token Bearer dans le header Authorization.
 // En cas de token absent, expiré ou altéré, la requête est immédiatement
@@ -47,8 +44,8 @@ func JWTAuth(jwtSecret string) gin.HandlerFunc {
 		}
 
 		// Injection des claims dans le contexte pour les handlers aval
-		c.Set(CtxKeyUserID, claims.UserID)
-		c.Set(CtxKeyEmail,  claims.Email)
+		c.Set(CtxKeyUserID,   claims.UserID)
+		c.Set(CtxKeyUsername, claims.Username)
 		c.Next()
 	}
 }
@@ -63,9 +60,9 @@ func UserIDFromCtx(c *gin.Context) int64 {
 	return v.(int64)
 }
 
-// EmailFromCtx extrait l'email injecté par JWTAuth.
-func EmailFromCtx(c *gin.Context) string {
-	v, _ := c.Get(CtxKeyEmail)
+// UsernameFromCtx extrait le username injecté par JWTAuth.
+func UsernameFromCtx(c *gin.Context) string {
+	v, _ := c.Get(CtxKeyUsername)
 	s, _ := v.(string)
 	return s
 }

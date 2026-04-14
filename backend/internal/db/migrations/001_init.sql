@@ -6,14 +6,15 @@
 -- ── Utilisateurs ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER  PRIMARY KEY AUTOINCREMENT,
-    email         TEXT     NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash TEXT     NOT NULL,                       -- bcrypt hash (coût 12)
+    username      TEXT     NOT NULL UNIQUE COLLATE NOCASE,  -- 3-32 chars, alphanum + ._-
+    password_hash TEXT     NOT NULL,                        -- bcrypt hash (coût 12)
+    role          TEXT     NOT NULL DEFAULT 'admin',        -- 'admin' | 'user'
     created_at    DATETIME NOT NULL DEFAULT (datetime('now')),
     updated_at    DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
--- Index pour les lookups par email (login, vérification doublon)
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+-- Index pour les lookups par username (login, vérification doublon)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
 -- ── Refresh tokens (rotation + révocation) ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS refresh_tokens (

@@ -22,11 +22,21 @@ async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
+// ── Setup (premier lancement) ────────────────────────────────────────────────
+export const setupApi = {
+  status: () => req<{ needs_setup: boolean }>("/setup/status"),
+  create: (username: string, password: string) =>
+    req<{ access_token: string; expires_in: number }>("/setup", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+}
+
 export const auth = {
-  login:    (email: string, password: string) =>
-    req<{ access_token: string }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
-  register: (email: string, password: string) =>
-    req<{ access_token: string }>("/auth/register", { method: "POST", body: JSON.stringify({ email, password }) }),
+  login:    (username: string, password: string) =>
+    req<{ access_token: string }>("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }),
+  register: (username: string, password: string) =>
+    req<{ access_token: string }>("/auth/register", { method: "POST", body: JSON.stringify({ username, password }) }),
   logout:   () => req<void>("/auth/logout", { method: "POST" }),
 }
 
