@@ -277,11 +277,24 @@ export default function Storage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Quantité *</label>
-                  <input type="number" min={0} step="1" value={form.quantity}
-                    onChange={e => f("quantity", +e.target.value)}
-                    className={inp} style={inpStyle}
-                    onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                    onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                  <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #2e2418", background: "#1a1410" }}>
+                    <button type="button" onClick={() => f("quantity", Math.max(0, (form.quantity ?? 0) - 1))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
+                    <input type="number" min={0} step="1" value={form.quantity}
+                      onChange={e => f("quantity", +e.target.value)}
+                      className="flex-1 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
+                      onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
+                      onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
+                    <button type="button" onClick={() => f("quantity", (form.quantity ?? 0) + 1)}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>+</button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Unité *</label>
@@ -303,11 +316,24 @@ export default function Storage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Seuil alerte</label>
-                  <input type="number" min={0} step="0.1" value={form.alert_at ?? 0}
-                    onChange={e => f("alert_at", +e.target.value)}
-                    className={inp} style={inpStyle}
-                    onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                    onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                  <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #2e2418", background: "#1a1410" }}>
+                    <button type="button" onClick={() => f("alert_at", Math.max(0, (form.alert_at ?? 0) - 1))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
+                    <input type="number" min={0} step="1" value={form.alert_at ?? 0}
+                      onChange={e => f("alert_at", +e.target.value)}
+                      className="flex-1 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
+                      onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
+                      onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
+                    <button type="button" onClick={() => f("alert_at", (form.alert_at ?? 0) + 1)}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>+</button>
+                  </div>
                 </div>
               </div>
               <div>
