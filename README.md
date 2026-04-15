@@ -70,10 +70,10 @@ cp .env.example .env
 
 ```env
 JWT_SECRET=votre-secret-long-et-aleatoire   # minimum 32 caractères
-FRONTEND_PORT=3000
+LOCAL_IP=192.168.x.x                        # votre IP locale (voir section HTTPS)
 ```
 
-Ou générer et injecter en une commande :
+Ou générer et injecter le secret en une commande :
 ```bash
 echo "JWT_SECRET=$(openssl rand -hex 64)" >> .env
 ```
@@ -92,7 +92,7 @@ docker compose up --build -d
 podman compose -f docker-compose.yml up --build -d
 ```
 
-Ouvrez **http://localhost:3000** pour accéder à l'application.
+Ouvrez **https://localhost:3443** pour accéder à l'application (acceptez le certificat auto-signé au premier accès).
 
 ### 4. Configuration initiale
 
@@ -117,6 +117,52 @@ podman compose up -d         # Podman
 ```
 
 > Les données sont persistées dans un volume Docker (`home-cooking-sqlite`). La commande `down` ne supprime pas la base de données. Pour tout réinitialiser : `docker compose down -v`.
+
+---
+
+## HTTPS (certificat auto-signé)
+
+L'application tourne en **HTTPS par défaut** en production grâce à un certificat SSL auto-signé généré automatiquement lors du build Docker. Aucune gestion manuelle de certificat n'est nécessaire.
+
+### Comment ça marche
+
+Au `docker compose up --build`, le Dockerfile du frontend génère un certificat RSA 2048 bits valable 10 ans. Nginx écoute sur le port 443 (HTTPS) et redirige automatiquement le port 80 (HTTP) vers HTTPS.
+
+### Accès depuis un autre appareil du réseau local
+
+Par défaut, le certificat n'est valide que pour `localhost` et `127.0.0.1`. Pour accéder à l'application depuis un autre appareil (téléphone, tablette…), il faut déclarer votre IP locale dans le `.env` **avant le build** :
+
+```env
+LOCAL_IP=192.168.1.42
+```
+
+Cette IP sera intégrée au certificat SSL (champ SAN) et au CORS du backend. Pour trouver votre IP locale :
+
+```bash
+# Linux / macOS
+ip route get 1 | awk '{print $7}'
+# ou
+hostname -I | awk '{print $1}'
+```
+
+> ⚠️ Si vous changez d'IP locale, il faut **rebuild** l'image pour régénérer le certificat : `docker compose up --build -d`
+
+### Ports exposés (production)
+
+| Port | Protocole | Comportement |
+|------|-----------|-------------|
+| `3443` | HTTPS | Point d'entrée principal |
+| `3080` | HTTP | Redirige automatiquement vers HTTPS |
+
+Ces ports sont configurables via `FRONTEND_PORT` et `FRONTEND_HTTP_PORT` dans le `.env`.
+
+### Avertissement du navigateur
+
+Au premier accès, le navigateur affichera un avertissement « connexion non sécurisée » — c'est normal pour un certificat auto-signé. Cliquez sur « Avancé » puis « Accepter le risque » (le libellé varie selon le navigateur). L'avertissement ne réapparaîtra plus pour ce domaine.
+
+### Mode développement
+
+Le mode dev (`docker-compose.dev.yml`) reste en **HTTP sur le port 3000**, sans changement de workflow.
 
 ---
 
@@ -226,11 +272,13 @@ Toutes les routes sont préfixées `/api/v1`. Les routes protégées nécessiten
 | Variable | Défaut | Description |
 |---|---|---|
 | `JWT_SECRET` | **requis** | Secret HMAC, min 32 caractères |
-| `FRONTEND_PORT` | `3000` | Port hôte pour l'UI |
+| `LOCAL_IP` | `127.0.0.1` | IP locale pour le certificat SSL et le CORS |
+| `FRONTEND_PORT` | `3443` | Port HTTPS hôte pour l'UI |
+| `FRONTEND_HTTP_PORT` | `3080` | Port HTTP hôte (redirige vers HTTPS) |
 | `PORT` | `8080` | Port interne du backend |
 | `ENV` | `production` | `production` ou `development` |
 | `DB_PATH` | `/data/home-cooking.db` | Chemin du fichier SQLite |
-| `CORS_ORIGINS` | `http://localhost:3000` | Origines autorisées, séparées par des virgules |
+| `CORS_ORIGINS` | auto | Calculé depuis `LOCAL_IP` et `FRONTEND_PORT` |
 | `JWT_ACCESS_TTL` | `15m` | Durée de vie de l'access token |
 | `JWT_REFRESH_TTL` | `7d` | Durée de vie du refresh token |
 | `RATE_LIMIT_RPS` | `20` | Requêtes/seconde par IP |

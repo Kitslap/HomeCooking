@@ -16,8 +16,11 @@ RUN npm run build
 # Sert le bundle compilé via nginx (HTTP + HTTPS auto-signé)
 FROM nginx:1.27-alpine
 
+# IP locale de la machine hôte (ex: 192.168.1.xx) — passée via docker-compose
+# build args depuis le .env. Utilisée pour le SAN du certificat SSL.
+ARG LOCAL_IP=127.0.0.1
+
 # Génération du certificat auto-signé au build (valable 10 ans)
-# Le CN utilise un wildcard pour accepter localhost et toute IP locale.
 RUN apk add --no-cache openssl \
     && mkdir -p /etc/nginx/ssl \
     && openssl req -x509 -nodes -days 3650 \
@@ -25,7 +28,7 @@ RUN apk add --no-cache openssl \
          -keyout /etc/nginx/ssl/selfsigned.key \
          -out    /etc/nginx/ssl/selfsigned.crt \
          -subj   "/C=FR/ST=Local/L=Local/O=HomeCooking/CN=localhost" \
-         -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:192.168.1.18" \
+         -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:${LOCAL_IP}" \
     && apk del openssl
 
 RUN rm -rf /etc/nginx/conf.d/*

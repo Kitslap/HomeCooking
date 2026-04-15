@@ -36,7 +36,7 @@ services:
       ENV:              "production"
       # JWT_SECRET, CORS_ORIGINS, etc. chargés depuis .env (voir env_file)
       DB_PATH:          "/data/home-cooking.db"
-      CORS_ORIGINS:     "https://192.168.1.18:3443,https://localhost:3443"
+      CORS_ORIGINS:     "https://${LOCAL_IP:-localhost}:${FRONTEND_PORT:-3443},https://localhost:${FRONTEND_PORT:-3443}"
       JWT_ACCESS_TTL:   "15m"
       JWT_REFRESH_TTL:  "7d"
       RATE_LIMIT_RPS:   "20"
@@ -85,6 +85,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        LOCAL_IP: "${LOCAL_IP:-127.0.0.1}"
     image: home-cooking/frontend:latest
     container_name: home-cooking-frontend
 
