@@ -267,11 +267,24 @@ export default function Recipes() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Portions</label>
-                  <input type="number" min={1} value={form.servings}
-                    onChange={e => setForm(f => ({ ...f, servings: +e.target.value }))}
-                    className={inp} style={inpStyle}
-                    onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                    onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                  <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #2e2418", background: "#1a1410" }}>
+                    <button type="button" onClick={() => setForm(f => ({ ...f, servings: Math.max(1, (f.servings ?? 1) - 1) }))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
+                    <input type="number" min={1} step="1" value={form.servings}
+                      onChange={e => setForm(f => ({ ...f, servings: +e.target.value }))}
+                      className="flex-1 min-w-0 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
+                      onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
+                      onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
+                    <button type="button" onClick={() => setForm(f => ({ ...f, servings: (f.servings ?? 1) + 1 }))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>+</button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Difficulté</label>
@@ -284,19 +297,45 @@ export default function Recipes() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Prép. (min)</label>
-                  <input type="number" min={0} value={form.prep_time ?? ""}
-                    onChange={e => setForm(f => ({ ...f, prep_time: +e.target.value || undefined }))}
-                    className={inp} style={inpStyle}
-                    onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                    onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                  <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #2e2418", background: "#1a1410" }}>
+                    <button type="button" onClick={() => setForm(f => ({ ...f, prep_time: Math.max(0, (f.prep_time ?? 0) - 1) || undefined }))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
+                    <input type="number" min={0} step="1" value={form.prep_time ?? ""}
+                      onChange={e => setForm(f => ({ ...f, prep_time: +e.target.value || undefined }))}
+                      className="flex-1 min-w-0 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
+                      onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
+                      onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
+                    <button type="button" onClick={() => setForm(f => ({ ...f, prep_time: (f.prep_time ?? 0) + 1 }))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>+</button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Cuisson (min)</label>
-                  <input type="number" min={0} value={form.cook_time ?? ""}
-                    onChange={e => setForm(f => ({ ...f, cook_time: +e.target.value || undefined }))}
-                    className={inp} style={inpStyle}
-                    onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                    onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                  <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #2e2418", background: "#1a1410" }}>
+                    <button type="button" onClick={() => setForm(f => ({ ...f, cook_time: Math.max(0, (f.cook_time ?? 0) - 1) || undefined }))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
+                    <input type="number" min={0} step="1" value={form.cook_time ?? ""}
+                      onChange={e => setForm(f => ({ ...f, cook_time: +e.target.value || undefined }))}
+                      className="flex-1 min-w-0 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
+                      onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
+                      onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
+                    <button type="button" onClick={() => setForm(f => ({ ...f, cook_time: (f.cook_time ?? 0) + 1 }))}
+                      className="w-9 h-10 flex items-center justify-center text-sm transition-colors shrink-0"
+                      style={{ color: "#8a7060" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>+</button>
+                  </div>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Tags (séparés par virgule)</label>
