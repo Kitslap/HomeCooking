@@ -13,29 +13,14 @@ COPY . .
 RUN npm run build
 
 # ── Stage 2 : Runtime ────────────────────────────────────────────────────────
-# Sert le bundle compilé via nginx (HTTP + HTTPS auto-signé)
+# Sert le bundle compilé via nginx
 FROM nginx:1.27-alpine
-
-# IP locale de la machine hôte (ex: 192.168.1.xx) — passée via docker-compose
-# build args depuis le .env. Utilisée pour le SAN du certificat SSL.
-ARG LOCAL_IP=127.0.0.1
-
-# Génération du certificat auto-signé au build (valable 10 ans)
-RUN apk add --no-cache openssl \
-    && mkdir -p /etc/nginx/ssl \
-    && openssl req -x509 -nodes -days 3650 \
-         -newkey rsa:2048 \
-         -keyout /etc/nginx/ssl/selfsigned.key \
-         -out    /etc/nginx/ssl/selfsigned.crt \
-         -subj   "/C=FR/ST=Local/L=Local/O=HomeCooking/CN=localhost" \
-         -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:${LOCAL_IP}" \
-    && apk del openssl
 
 RUN rm -rf /etc/nginx/conf.d/*
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html/
 
-EXPOSE 80 443
+EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget -qO- --no-check-certificate https://localhost/health-frontend || exit 1
+  CMD wget -qO- http://localhost/health-frontend || exit 1
 CMD ["nginx", "-g", "daemon off;"]

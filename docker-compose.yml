@@ -36,7 +36,7 @@ services:
       ENV:              "production"
       # JWT_SECRET, CORS_ORIGINS, etc. chargés depuis .env (voir env_file)
       DB_PATH:          "/data/home-cooking.db"
-      CORS_ORIGINS:     "https://${LOCAL_IP:-localhost}:${FRONTEND_PORT:-3443},https://localhost:${FRONTEND_PORT:-3443}"
+      CORS_ORIGINS:     "http://192.168.1.18:3000"
       JWT_ACCESS_TTL:   "15m"
       JWT_REFRESH_TTL:  "7d"
       RATE_LIMIT_RPS:   "20"
@@ -85,16 +85,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        LOCAL_IP: "${LOCAL_IP:-127.0.0.1}"
     image: home-cooking/frontend:latest
     container_name: home-cooking-frontend
 
     ports:
-      # HTTPS — point d'entrée principal
-      - "${FRONTEND_PORT:-3443}:443"
-      # HTTP — redirige automatiquement vers HTTPS
-      - "${FRONTEND_HTTP_PORT:-3080}:80"
+      # Point d'entrée unique accessible depuis l'hôte
+      - "${FRONTEND_PORT:-3000}:80"
 
     networks:
       - internal
@@ -106,7 +102,7 @@ services:
         condition: service_started
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- --no-check-certificate https://localhost/health-frontend || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health-frontend || exit 1"]
       interval: 30s
       timeout:  5s
       retries:  3
