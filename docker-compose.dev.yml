@@ -37,6 +37,9 @@ services:
       args:
         VITE_API_URL: "http://localhost:8080"   # appels directs backend en dev
     ports:
-      - "3000:80"
+      - "3000:80"       # HTTP uniquement en dev (override le HTTPS de prod)
+    # Override du healthcheck pour rester en HTTP en dev
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health-frontend || exit 1"]
     deploy:
       resources: {}
