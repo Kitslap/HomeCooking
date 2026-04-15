@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import ReactDOM from "react-dom"
 import { storage as api } from "@/lib/api"
 import type { StorageItem, StorageInput } from "@/lib/api"
 
@@ -249,9 +250,9 @@ export default function Storage() {
         })}
       </div>
 
-      {/* Modal */}
-      {modal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+      {/* Modal — rendu en portal pour éviter le clipping par overflow-auto du parent */}
+      {modal && ReactDOM.createPortal(
+        <div className="fixed inset-0 flex items-end sm:items-center justify-center z-[9999] p-0 sm:p-4"
           style={{ background: "rgba(0,0,0,0.75)" }}>
           <div className="w-full sm:max-w-md max-h-[92vh] overflow-auto rounded-t-2xl sm:rounded-2xl"
             style={{ background: "#141210", border: "1px solid #2a2018" }}>
@@ -285,7 +286,7 @@ export default function Storage() {
                       onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
                     <input type="number" min={0} step="1" value={form.quantity}
                       onChange={e => f("quantity", +e.target.value)}
-                      className="flex-1 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="flex-1 min-w-0 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
                       onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
                       onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
@@ -324,7 +325,7 @@ export default function Storage() {
                       onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
                     <input type="number" min={0} step="1" value={form.alert_at ?? 0}
                       onChange={e => f("alert_at", +e.target.value)}
-                      className="flex-1 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="flex-1 min-w-0 text-center py-2.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
                       onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
                       onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
@@ -365,7 +366,8 @@ export default function Storage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
