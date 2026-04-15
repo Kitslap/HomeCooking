@@ -277,7 +277,7 @@ export default function Storage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Quantité *</label>
-                  <input type="number" min={0} step="0.1" value={form.quantity}
+                  <input type="number" min={0} step="1" value={form.quantity}
                     onChange={e => f("quantity", +e.target.value)}
                     className={inp} style={inpStyle}
                     onFocus={e => (e.target.style.borderColor = "#d4734a")}

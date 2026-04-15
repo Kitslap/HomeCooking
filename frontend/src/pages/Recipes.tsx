@@ -24,6 +24,7 @@ export default function Recipes() {
   const [form, setForm]         = useState<RecipeInput>(EMPTY)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
+  const [tagInput, setTagInput] = useState("")
   // Vue mobile : "list" ou "detail"
   const [mobileView, setMobileView] = useState<"list" | "detail">("list")
 
@@ -32,7 +33,7 @@ export default function Recipes() {
 
   useEffect(() => { load() }, [])
 
-  const openCreate = () => { setForm(EMPTY); setError(""); setModal("create") }
+  const openCreate = () => { setForm(EMPTY); setTagInput(""); setError(""); setModal("create") }
   const openEdit   = (r: Recipe) => {
     setForm({
       name: r.name, description: r.description ?? "", servings: r.servings,
@@ -40,6 +41,7 @@ export default function Recipes() {
       ingredients: r.ingredients?.map(i => ({ name: i.name, quantity: i.quantity, unit: i.unit ?? "pcs" })) ?? [],
       steps: r.steps?.map(s => ({ step_order: s.step_order, content: s.content })) ?? [],
     })
+    setTagInput((r.tags ?? []).join(", "))
     setError(""); setModal("edit")
   }
 
@@ -299,12 +301,15 @@ export default function Recipes() {
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-medium mb-1.5 tracking-widests uppercase" style={{ color: "#8a7060" }}>Tags (séparés par virgule)</label>
                   <input
-                    value={form.tags?.join(", ") ?? ""}
-                    onChange={e => setForm(f => ({ ...f, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) }))}
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
                     placeholder="végé, riz, hivernal"
                     className={inp} style={inpStyle}
                     onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                    onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                    onBlur={e => {
+                      e.target.style.borderColor = "#2e2418"
+                      setForm(f => ({ ...f, tags: tagInput.split(",").map(t => t.trim()).filter(Boolean) }))
+                    }} />
                 </div>
               </div>
 
@@ -316,11 +321,24 @@ export default function Recipes() {
                 </div>
                 {form.ingredients?.map((ing, i) => (
                   <div key={i} className="flex gap-2 mb-2">
-                    <input value={ing.quantity ?? ""} onChange={e => setIng(i, "quantity", +e.target.value || undefined)}
-                      placeholder="Qté" type="number" min={0}
-                      className="w-14 rounded-lg px-2 py-2 text-sm outline-none" style={inpStyle}
-                      onFocus={e => (e.target.style.borderColor = "#d4734a")}
-                      onBlur={e => (e.target.style.borderColor = "#2e2418")} />
+                    <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #2e2418", background: "#1a1410" }}>
+                      <button type="button" onClick={() => setIng(i, "quantity", Math.max(0, (ing.quantity ?? 0) - 1))}
+                        className="w-7 h-9 flex items-center justify-center text-sm transition-colors shrink-0"
+                        style={{ color: "#8a7060" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>−</button>
+                      <input value={ing.quantity ?? ""} onChange={e => setIng(i, "quantity", +e.target.value || undefined)}
+                        placeholder="Qté" type="number" min={0}
+                        className="w-10 text-center py-2 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        style={{ background: "transparent", color: "#f0e8dc", border: "none" }}
+                        onFocus={e => (e.currentTarget.parentElement!.style.borderColor = "#d4734a")}
+                        onBlur={e => (e.currentTarget.parentElement!.style.borderColor = "#2e2418")} />
+                      <button type="button" onClick={() => setIng(i, "quantity", (ing.quantity ?? 0) + 1)}
+                        className="w-7 h-9 flex items-center justify-center text-sm transition-colors shrink-0"
+                        style={{ color: "#8a7060" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "#d4734a")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "#8a7060")}>+</button>
+                    </div>
                     <input value={ing.unit ?? ""} onChange={e => setIng(i, "unit", e.target.value)}
                       placeholder="Unité"
                       className="w-16 rounded-lg px-2 py-2 text-sm outline-none" style={inpStyle}
