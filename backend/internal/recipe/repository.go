@@ -12,7 +12,7 @@ import (
 )
 
 // ErrNotFound est retourné quand une recette est introuvable ou n'appartient pas à l'utilisateur.
-var ErrNotFound = errors.New("recette introuvable")
+var ErrNotFound = errors.New("Recette introuvable.")
 
 // Repository encapsule toutes les requêtes SQL liées aux recettes.
 // L'injection de *sql.DB permet un remplacement facile par un mock en test.

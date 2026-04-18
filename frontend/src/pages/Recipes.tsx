@@ -51,12 +51,63 @@ export default function Recipes() {
     setMobileView("detail")
   }
 
-  const save = async () => {
-    setSaving(true); setError("")
-    const payload = {
-      ...form,
-      ingredients: form.ingredients?.map(i => ({ ...i, unit: i.unit?.trim() || "pcs" })),
+  // Nettoyage : on supprime les lignes de placeholder vides (ingrédient sans
+  // nom, étape sans contenu) avant d'envoyer, sinon le backend les refuserait
+  // à juste titre. On renumérote les étapes pour garder une séquence propre.
+  const buildPayload = (f: RecipeInput): RecipeInput => {
+    const cleanIngredients = (f.ingredients ?? [])
+      .filter(i => (i.name ?? "").trim().length > 0)
+      .map(i => ({ ...i, name: i.name.trim(), unit: i.unit?.trim() || "pcs" }))
+    const cleanSteps = (f.steps ?? [])
+      .filter(s => (s.content ?? "").trim().length > 0)
+      .map((s, idx) => ({ step_order: idx + 1, content: s.content.trim() }))
+    return {
+      ...f,
+      name: f.name.trim(),
+      description: f.description?.trim() || undefined,
+      tags: tagInput.split(",").map(t => t.trim()).filter(Boolean),
+      ingredients: cleanIngredients,
+      steps: cleanSteps,
     }
+  }
+
+  // Validation client — alignée sur les tags `binding:"..."` du backend
+  // (cf. backend/internal/recipe/model.go). Les messages sont écrits en FR
+  // et cohérents avec ceux renvoyés par `httperror.FormatBindingError`.
+  const validate = (f: RecipeInput, payload: RecipeInput): string | null => {
+    const name = (f.name ?? "").trim()
+    if (name.length === 0) return "Le nom de la recette est obligatoire."
+    if (name.length < 2)   return "Le nom de la recette doit contenir au moins 2 caractères."
+    if (name.length > 120) return "Le nom de la recette ne peut pas dépasser 120 caractères."
+    if ((f.servings ?? 0) < 1) return "Le nombre de portions doit être au minimum 1."
+    if ((f.servings ?? 0) > 50) return "Le nombre de portions ne peut pas dépasser 50."
+    if (!payload.ingredients || payload.ingredients.length === 0)
+      return "Ajoutez au moins un ingrédient (avec un nom)."
+    if (payload.ingredients.length > 100)
+      return "Une recette ne peut pas contenir plus de 100 ingrédients."
+    if (!payload.steps || payload.steps.length === 0)
+      return "Ajoutez au moins une étape (avec du contenu)."
+    if (payload.steps.length > 50)
+      return "Une recette ne peut pas contenir plus de 50 étapes."
+    for (let i = 0; i < payload.ingredients.length; i++) {
+      const ing = payload.ingredients[i]
+      if (ing.name.length === 0) return `Le nom de l'ingrédient #${i + 1} est obligatoire.`
+      if (ing.name.length > 120) return `Le nom de l'ingrédient #${i + 1} ne peut pas dépasser 120 caractères.`
+    }
+    for (let i = 0; i < payload.steps.length; i++) {
+      const c = payload.steps[i].content
+      if (c.length === 0)   return `Le contenu de l'étape #${i + 1} est obligatoire.`
+      if (c.length > 2000)  return `Le contenu de l'étape #${i + 1} ne peut pas dépasser 2000 caractères.`
+    }
+    return null
+  }
+
+  const save = async () => {
+    const payload = buildPayload(form)
+    const err = validate(form, payload)
+    if (err) { setError(err); return }
+
+    setSaving(true); setError("")
     try {
       if (modal === "create") {
         const r = await api.create(payload); setList(l => [r, ...l]); setSelected(r); setMobileView("detail")
@@ -435,8 +486,8 @@ export default function Recipes() {
                   style={{ background: "transparent", border: "1px solid #2a2018", color: "#8a7060" }}>
                   Annuler
                 </button>
-                <button onClick={save} disabled={saving || !form.name}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+                <button onClick={save} disabled={saving || !form.name.trim()}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: "linear-gradient(135deg, #d4734a, #c05e38)", color: "#fff" }}>
                   {saving ? "Enregistrement…" : "Enregistrer"}
                 </button>

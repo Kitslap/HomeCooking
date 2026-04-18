@@ -43,9 +43,30 @@ export default function Storage() {
     setEditing(item); setError(""); setModal("edit")
   }
 
+  // Validation client : messages FR cohérents avec ceux du backend.
+  // On court-circuite avant l'appel réseau pour ne pas dépendre de la couche
+  // serveur et fournir un feedback immédiat à l'utilisateur.
+  const validate = (f: StorageInput): string | null => {
+    const name = (f.name ?? "").trim()
+    if (name.length === 0) return "Le nom est obligatoire."
+    if (name.length > 120) return "Le nom ne peut pas dépasser 120 caractères."
+    // Backend: `required,min=0` sur un float64 → `required` échoue si la valeur est
+    // 0 (zero-value Go). On force donc l'utilisateur à renseigner > 0 côté client
+    // pour que le message soit aligné avec la contrainte effective du backend.
+    if (f.quantity == null || f.quantity <= 0) return "Veuillez indiquer une quantité supérieure à 0."
+    const unit = (f.unit ?? "").trim()
+    if (unit.length === 0) return "L'unité est obligatoire."
+    if (unit.length > 20)  return "L'unité ne peut pas dépasser 20 caractères."
+    if ((f.alert_at ?? 0) < 0) return "Le seuil d'alerte ne peut pas être négatif."
+    return null
+  }
+
   const save = async () => {
+    const err = validate(form)
+    if (err) { setError(err); return }
+
     setSaving(true); setError("")
-    const payload = { ...form, unit: form.unit?.trim() || "pcs" }
+    const payload = { ...form, name: form.name.trim(), unit: form.unit?.trim() || "pcs" }
     try {
       if (modal === "create") { await api.create(payload); await load() }
       else if (editing)       { await api.update(editing.id, payload); await load() }
@@ -358,8 +379,8 @@ export default function Storage() {
                   style={{ background: "transparent", border: "1px solid #2a2018", color: "#8a7060" }}>
                   Annuler
                 </button>
-                <button onClick={save} disabled={saving || !form.name || !form.unit}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+                <button onClick={save} disabled={saving || validate(form) !== null}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: "linear-gradient(135deg, #d4734a, #c05e38)", color: "#fff" }}>
                   {saving ? "…" : "Enregistrer"}
                 </button>

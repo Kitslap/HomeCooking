@@ -21,6 +21,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/Kitslap/HomeCooking/internal/auth"
+	"github.com/Kitslap/HomeCooking/internal/httperror"
 )
 
 // ── Dépendances injectées ────────────────────────────────────────────────────
@@ -68,7 +69,7 @@ func statusHandler(deps Deps) gin.HandlerFunc {
 		empty, err := isUsersTableEmpty(c.Request.Context(), deps.DB)
 		if err != nil {
 			log.Error().Err(err).Msg("setup/status: erreur comptage utilisateurs")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 		c.JSON(http.StatusOK, statusResponse{NeedsSetup: empty})
@@ -90,25 +91,26 @@ func createHandler(deps Deps) gin.HandlerFunc {
 		empty, err := isUsersTableEmpty(c.Request.Context(), deps.DB)
 		if err != nil {
 			log.Error().Err(err).Msg("setup/create: erreur comptage utilisateurs")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 		if !empty {
-			c.JSON(http.StatusForbidden, gin.H{"error": "instance déjà configurée"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "Instance déjà configurée."})
 			return
 		}
 
 		// ── Validation du payload ─────────────────────────────────────────────
 		var input setupInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Debug().Err(err).Msg("setup/create: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		// Validation du format username : lettres, chiffres, ._-
 		if !isValidUsername(input.Username) {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "nom d'utilisateur invalide (lettres, chiffres, ._- uniquement)",
+				"error": "Le nom d'utilisateur ne peut contenir que des lettres, chiffres et les caractères « . », « _ » et « - ».",
 			})
 			return
 		}
@@ -117,14 +119,14 @@ func createHandler(deps Deps) gin.HandlerFunc {
 		hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), 12)
 		if err != nil {
 			log.Error().Err(err).Msg("setup/create: bcrypt")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
 		userID, err := createAdminUser(c.Request.Context(), deps.DB, input.Username, string(hash))
 		if err != nil {
 			log.Error().Err(err).Msg("setup/create: insertion admin")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -137,21 +139,21 @@ func createHandler(deps Deps) gin.HandlerFunc {
 		accessToken, err := auth.GenerateAccessToken(userID, input.Username, deps.JWTSecret, deps.AccessTTL)
 		if err != nil {
 			log.Error().Err(err).Msg("setup/create: génération access token")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
 		refreshToken, err := auth.GenerateRefreshToken(userID, deps.JWTSecret, deps.RefreshTTL)
 		if err != nil {
 			log.Error().Err(err).Msg("setup/create: génération refresh token")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
 		// Stockage du refresh token en base
 		if err := storeRefreshToken(c.Request.Context(), deps.DB, userID, refreshToken, deps.RefreshTTL); err != nil {
 			log.Error().Err(err).Msg("setup/create: stockage refresh token")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 

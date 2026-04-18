@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Kitslap/HomeCooking/internal/httperror"
 	"github.com/Kitslap/HomeCooking/internal/middleware"
 )
 
@@ -70,7 +71,7 @@ func listHandler(repo *Repository) gin.HandlerFunc {
 		// Validation du filtre level
 		if q.Level != "" && q.Level != LevelOK && q.Level != LevelLow && q.Level != LevelCritical {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "level invalide — valeurs acceptées : ok, low, critical",
+				"error": "Le filtre « niveau » est invalide (valeurs acceptées : ok, low, critical).",
 			})
 			return
 		}
@@ -78,7 +79,7 @@ func listHandler(repo *Repository) gin.HandlerFunc {
 		result, err := repo.List(c.Request.Context(), userID, q)
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Msg("list storage: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -98,7 +99,7 @@ func statsHandler(repo *Repository) gin.HandlerFunc {
 		stats, err := repo.GetStats(c.Request.Context(), userID)
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Msg("storage stats: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -117,7 +118,7 @@ func alertsHandler(repo *Repository) gin.HandlerFunc {
 		alerts, err := repo.GetAlerts(c.Request.Context(), userID)
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Msg("storage alerts: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -144,7 +145,7 @@ func shoppingListHandler(repo *Repository) gin.HandlerFunc {
 		list, err := repo.GetShoppingList(c.Request.Context(), userID)
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Msg("shopping list: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -169,14 +170,22 @@ func createHandler(repo *Repository) gin.HandlerFunc {
 
 		var input CreateItemInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			// Conversion des erreurs brutes du validator/JSON en message FR utilisateur.
+			// On log la version technique mais on renvoie au client un texte lisible.
+			log.Debug().Err(err).Int64("user_id", userID).Msg("create storage item: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		item, err := repo.Create(c.Request.Context(), userID, input)
+		if errors.Is(err, ErrInvalidInput) {
+			// Erreur métier "propre" — déjà formatée en FR par le repo.
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Str("name", input.Name).Msg("create storage item: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -199,18 +208,18 @@ func getHandler(repo *Repository) gin.HandlerFunc {
 
 		itemID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		item, err := repo.GetByID(c.Request.Context(), userID, itemID)
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "article introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Article introuvable."})
 			return
 		}
 		if err != nil {
 			log.Error().Err(err).Int64("item_id", itemID).Msg("get storage item: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -229,24 +238,29 @@ func updateHandler(repo *Repository) gin.HandlerFunc {
 
 		itemID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		var input UpdateItemInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Debug().Err(err).Int64("item_id", itemID).Msg("update storage item: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		item, err := repo.Update(c.Request.Context(), userID, itemID, input)
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "article introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Article introuvable."})
+			return
+		}
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if err != nil {
 			log.Error().Err(err).Int64("item_id", itemID).Msg("update storage item: erreur repository")
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -268,16 +282,16 @@ func deleteHandler(repo *Repository) gin.HandlerFunc {
 
 		itemID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		if err := repo.Delete(c.Request.Context(), userID, itemID); errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "article introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Article introuvable."})
 			return
 		} else if err != nil {
 			log.Error().Err(err).Int64("item_id", itemID).Msg("delete storage item: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -301,28 +315,29 @@ func adjustQuantityHandler(repo *Repository) gin.HandlerFunc {
 
 		itemID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		var input AdjustQuantityInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Debug().Err(err).Int64("item_id", itemID).Msg("adjust quantity: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		item, err := repo.AdjustQuantity(c.Request.Context(), userID, itemID, input.Delta)
 		switch {
 		case errors.Is(err, ErrNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "article introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Article introuvable."})
 		case errors.Is(err, ErrQuantityBelowZero):
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": "impossible — la quantité résultante serait négative",
+				"error": "La quantité ne peut pas devenir négative.",
 			})
 		case err != nil:
 			log.Error().Err(err).Int64("item_id", itemID).Float64("delta", input.Delta).
 				Msg("adjust quantity: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 		default:
 			log.Info().
 				Int64("user_id", userID).
@@ -341,7 +356,7 @@ func parseID(c *gin.Context, param string) (int64, error) {
 	raw := c.Param(param)
 	id, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.New("id doit être un entier positif")
+		return 0, errors.New("L'identifiant doit être un entier positif.")
 	}
 	return id, nil
 }

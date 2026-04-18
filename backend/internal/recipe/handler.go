@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Kitslap/HomeCooking/internal/httperror"
 	"github.com/Kitslap/HomeCooking/internal/middleware"
 )
 
@@ -54,7 +55,7 @@ func listHandler(repo *Repository) gin.HandlerFunc {
 		result, err := repo.List(c.Request.Context(), userID, q)
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Msg("list recipes: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -72,14 +73,15 @@ func createHandler(repo *Repository) gin.HandlerFunc {
 
 		var input CreateRecipeInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Debug().Err(err).Int64("user_id", userID).Msg("create recipe: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		recipe, err := repo.Create(c.Request.Context(), userID, input)
 		if err != nil {
 			log.Error().Err(err).Int64("user_id", userID).Str("name", input.Name).Msg("create recipe: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -103,18 +105,18 @@ func getHandler(repo *Repository) gin.HandlerFunc {
 
 		recipeID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		recipe, err := repo.GetByID(c.Request.Context(), userID, recipeID)
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "recette introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Recette introuvable."})
 			return
 		}
 		if err != nil {
 			log.Error().Err(err).Int64("recipe_id", recipeID).Msg("get recipe: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -133,24 +135,25 @@ func updateHandler(repo *Repository) gin.HandlerFunc {
 
 		recipeID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		var input UpdateRecipeInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Debug().Err(err).Int64("recipe_id", recipeID).Msg("update recipe: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		recipe, err := repo.Update(c.Request.Context(), userID, recipeID, input)
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "recette introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Recette introuvable."})
 			return
 		}
 		if err != nil {
 			log.Error().Err(err).Int64("recipe_id", recipeID).Msg("update recipe: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -173,16 +176,16 @@ func deleteHandler(repo *Repository) gin.HandlerFunc {
 
 		recipeID, err := parseID(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id invalide"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "L'identifiant fourni est invalide."})
 			return
 		}
 
 		if err := repo.Delete(c.Request.Context(), userID, recipeID); errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "recette introuvable"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Recette introuvable."})
 			return
 		} else if err != nil {
 			log.Error().Err(err).Int64("recipe_id", recipeID).Msg("delete recipe: erreur repository")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -202,7 +205,7 @@ func parseID(c *gin.Context, param string) (int64, error) {
 	raw := c.Param(param)
 	id, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil || id <= 0 {
-		return 0, errors.New("id doit être un entier positif")
+		return 0, errors.New("L'identifiant doit être un entier positif.")
 	}
 	return id, nil
 }

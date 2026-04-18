@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/Kitslap/HomeCooking/internal/httperror"
 )
 
 // ── Dépendances injectées ──────────────────────────────────────────────────
@@ -70,7 +72,7 @@ func adminGuard(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := c.Get("userID")
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "accès refusé"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Accès refusé."})
 			return
 		}
 
@@ -79,7 +81,7 @@ func adminGuard(db *sql.DB) gin.HandlerFunc {
 			`SELECT role FROM users WHERE id = ?`, userID,
 		).Scan(&role)
 		if err != nil || role != "admin" {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "droits administrateur requis"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Droits administrateur requis."})
 			return
 		}
 
@@ -95,13 +97,14 @@ func registerHandler(deps HandlerDeps) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input registerInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Debug().Err(err).Msg("register: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
 		// Validation du format username : alphanum + ._-
 		if !isValidUsername(input.Username) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "nom d'utilisateur invalide (lettres, chiffres, ._- uniquement)"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Le nom d'utilisateur ne peut contenir que des lettres, chiffres et les caractères « . », « _ » et « - »."})
 			return
 		}
 
@@ -112,13 +115,13 @@ func registerHandler(deps HandlerDeps) gin.HandlerFunc {
 		exists, err := usernameExists(ctx, deps.DB, input.Username)
 		if err != nil {
 			log.Error().Err(err).Msg("register: vérification username")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 		if exists {
 			// Délai artificiel identique au hash pour éviter le timing side-channel
 			bcrypt.GenerateFromPassword([]byte(input.Password), 12) //nolint:errcheck
-			c.JSON(http.StatusConflict, gin.H{"error": "nom d'utilisateur déjà utilisé"})
+			c.JSON(http.StatusConflict, gin.H{"error": "Ce nom d'utilisateur est déjà utilisé."})
 			return
 		}
 
@@ -126,7 +129,7 @@ func registerHandler(deps HandlerDeps) gin.HandlerFunc {
 		hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), 12)
 		if err != nil {
 			log.Error().Err(err).Msg("register: bcrypt")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -134,7 +137,7 @@ func registerHandler(deps HandlerDeps) gin.HandlerFunc {
 		userID, err := createUser(ctx, deps.DB, input.Username, string(hash))
 		if err != nil {
 			log.Error().Err(err).Msg("register: insertion utilisateur")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "erreur interne"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Une erreur interne est survenue, veuillez réessayer."})
 			return
 		}
 
@@ -150,7 +153,8 @@ func loginHandler(deps HandlerDeps) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input loginInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "payload invalide"})
+			log.Debug().Err(err).Msg("login: payload invalide")
+			c.JSON(http.StatusBadRequest, gin.H{"error": httperror.FormatBindingError(err)})
 			return
 		}
 
@@ -162,14 +166,14 @@ func loginHandler(deps HandlerDeps) gin.HandlerFunc {
 			// Réponse identique quel que soit le cas (username inconnu ou mdp erroné)
 			// pour éviter l'énumération de comptes
 			bcrypt.CompareHashAndPassword([]byte("$2a$12$placeholder"), []byte(input.Password)) //nolint:errcheck
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "identifiants incorrects"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Identifiants incorrects."})
 			return
 		}
 
 		// Vérification du mot de passe
 		if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
 			log.Warn().Int64("user_id", user.ID).Str("ip", c.ClientIP()).Msg("login: mot de passe incorrect")
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "identifiants incorrects"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Identifiants incorrects."})
 			return
 		}
 
@@ -183,27 +187,27 @@ func refreshHandler(deps HandlerDeps) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		refreshToken, err := c.Cookie("refresh_token")
 		if err != nil || refreshToken == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token absent"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Session expirée — veuillez vous reconnecter."})
 			return
 		}
 
 		claims, err := ValidateRefreshToken(refreshToken, deps.JWTSecret)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token invalide ou expiré"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Session expirée — veuillez vous reconnecter."})
 			return
 		}
 
 		// Vérification que le refresh token est bien en base (révocation possible)
 		valid, err := isRefreshTokenValid(c.Request.Context(), deps.DB, claims.UserID, refreshToken)
 		if err != nil || !valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "session révoquée"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Session révoquée — veuillez vous reconnecter."})
 			return
 		}
 
 		// Récupération du username courant
 		user, err := getUserByID(c.Request.Context(), deps.DB, claims.UserID)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "utilisateur introuvable"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Utilisateur introuvable."})
 			return
 		}
 
@@ -221,7 +225,7 @@ func logoutHandler(deps HandlerDeps) gin.HandlerFunc {
 		}
 		// Suppression du cookie côté client
 		c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", deps.IsProd, true)
-		c.JSON(http.StatusOK, gin.H{"message": "déconnecté"})
+		c.JSON(http.StatusOK, gin.H{"message": "Déconnecté."})
 	}
 }
 

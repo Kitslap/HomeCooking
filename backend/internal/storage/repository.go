@@ -11,10 +11,27 @@ import (
 )
 
 // ErrNotFound est retourné quand un article est introuvable ou n'appartient pas à l'utilisateur.
-var ErrNotFound = errors.New("article introuvable")
+var ErrNotFound = errors.New("Article introuvable.")
 
 // ErrQuantityBelowZero est retourné quand un ajustement rendrait la quantité négative.
-var ErrQuantityBelowZero = errors.New("la quantité ne peut pas être négative")
+var ErrQuantityBelowZero = errors.New("La quantité ne peut pas être négative.")
+
+// ErrInvalidInput est un sentinel utilisé par les handlers pour détecter
+// les erreurs de validation métier déjà formatées en FR. Le message affichable
+// provient du fmt.Errorf qui wrappe cet error, pas de la valeur sentinel elle-même.
+var ErrInvalidInput = errors.New("invalid input")
+
+// invalidInput construit une erreur "métier" dont le .Error() est directement
+// le message FR destiné à l'utilisateur, tout en restant détectable via
+// errors.Is(err, ErrInvalidInput) côté handler.
+type businessError struct{ msg string }
+
+func (e *businessError) Error() string { return e.msg }
+func (e *businessError) Unwrap() error { return ErrInvalidInput }
+
+func invalidInput(msg string) error {
+	return &businessError{msg: msg}
+}
 
 // Repository encapsule toutes les requêtes SQL liées à l'inventaire.
 type Repository struct {
@@ -268,6 +285,9 @@ func (r *Repository) Create(ctx context.Context, userID int64, input CreateItemI
 		return nil, err
 	}
 
+	// Le schéma SQL impose category/unit NOT NULL DEFAULT '' : on stocke
+	// une chaîne vide quand l'utilisateur n'a rien renseigné, plutôt que NULL
+	// (qui ferait échouer la contrainte → "erreur interne" côté front).
 	res, err := r.db.ExecContext(ctx, `
 		INSERT INTO storage_items (user_id, name, quantity, unit, category, expiry, alert_at, notes)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -275,8 +295,8 @@ func (r *Repository) Create(ctx context.Context, userID int64, input CreateItemI
 		input.Name,
 		input.Quantity,
 		input.Unit,
-		nullStr(input.Category),
-		input.Expiry,     // *string — nil → NULL en base
+		input.Category,   // "" autorisé (NOT NULL DEFAULT '')
+		input.Expiry,     // *string — nil → NULL en base (colonne nullable)
 		input.AlertAt,
 		nullStr(input.Notes),
 	)
@@ -465,12 +485,13 @@ func computeLevelFromValues(quantity, alertAt float64, expiry *string) StockLeve
 // ── Validation ────────────────────────────────────────────────────────────
 
 // validateExpiry vérifie que la date d'expiration est au format ISO "2006-01-02".
+// Retourne ErrInvalidInput (wrappé) avec un message FR utilisateur si le format est mauvais.
 func validateExpiry(expiry *string) error {
 	if expiry == nil || *expiry == "" {
 		return nil
 	}
 	if _, err := time.Parse("2006-01-02", *expiry); err != nil {
-		return fmt.Errorf("expiry: format invalide %q (attendu : YYYY-MM-DD)", *expiry)
+		return invalidInput("La date d'expiration doit être au format JJ/MM/AAAA.")
 	}
 	return nil
 }
