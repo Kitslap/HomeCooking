@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { recipes as api } from "@/lib/api"
 import type { Recipe, RecipeInput } from "@/lib/api"
+import { Icon } from "@/components/Icon"
 
 const diffColor: Record<string, { text: string; bg: string; border: string }> = {
   facile:    { text: "#5a9e6f", bg: "#5a9e6f14", border: "#5a9e6f30" },
@@ -264,7 +265,7 @@ export default function Recipes() {
         </div>
       ) : (
         <div className="h-full flex flex-col items-center justify-center gap-3" style={{ color: "#4a3828" }}>
-          <span className="text-5xl opacity-50">◈</span>
+          <span className="opacity-50"><Icon name="book" size={56} strokeWidth={1.25} /></span>
           <span className="text-sm">Sélectionnez ou créez une recette</span>
         </div>
       )}

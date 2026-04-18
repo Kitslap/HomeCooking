@@ -2,6 +2,7 @@ import { useState } from "react"
 import type { ReactNode } from "react"
 import type { Page } from "@/App"
 import logoIcon from "@/assets/home_cooking_icon.png"
+import { Icon, type IconName } from "@/components/Icon"
 
 interface LayoutProps {
   children: ReactNode
@@ -10,10 +11,10 @@ interface LayoutProps {
   onLogout: () => void
 }
 
-const navItems: { id: Page; label: string; icon: string }[] = [
-  { id: "dashboard", label: "Accueil",    icon: "⌂" },
-  { id: "recipes",   label: "Recettes",   icon: "◈" },
-  { id: "storage",   label: "Inventaire", icon: "▣" },
+const navItems: { id: Page; label: string; icon: IconName }[] = [
+  { id: "dashboard", label: "Accueil",    icon: "home"   },
+  { id: "recipes",   label: "Recettes",   icon: "book"   },
+  { id: "storage",   label: "Inventaire", icon: "basket" },
 ]
 
 export default function Layout({ children, currentPage, onNavigate, onLogout }: LayoutProps) {
@@ -51,7 +52,9 @@ export default function Layout({ children, currentPage, onNavigate, onLogout }: 
                   color: active ? "#d4734a" : "#8a7060",
                   fontWeight: active ? 600 : 400,
                 }}>
-                <span className="flex-shrink-0 text-base w-5 text-center">{item.icon}</span>
+                <span className="flex-shrink-0 w-5 flex items-center justify-center">
+                  <Icon name={item.icon} size={18} />
+                </span>
                 {!collapsed && <span className="text-sm truncate">{item.label}</span>}
                 {active && !collapsed && (
                   <div className="ml-auto w-1 h-4 rounded-full" style={{ background: "#d4734a" }} />
@@ -123,7 +126,7 @@ export default function Layout({ children, currentPage, onNavigate, onLogout }: 
             <button key={item.id} onClick={() => onNavigate(item.id)}
               className="flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-all"
               style={{ color: active ? "#d4734a" : "#564a3a" }}>
-              <span className="text-lg leading-none">{item.icon}</span>
+              <Icon name={item.icon} size={20} />
               <span style={{ fontSize: "10px", fontWeight: active ? 600 : 400 }}>{item.label}</span>
               {active && (
                 <div className="absolute top-0 w-8 h-0.5 rounded-full" style={{ background: "#d4734a" }} />

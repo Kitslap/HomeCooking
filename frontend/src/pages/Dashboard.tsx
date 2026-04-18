@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import type { Page } from "@/App"
 import { storage, recipes } from "@/lib/api"
 import type { StorageStats, Recipe } from "@/lib/api"
+import { Icon, type IconName } from "@/components/Icon"
 
 const levelColor: Record<string, string> = { ok: "#5a9e6f", low: "#d4943a", critical: "#c85050" }
 
@@ -20,13 +21,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
   const cardStyle = { background: "#141210", border: "1px solid #2a2018" }
   const cardHover = { background: "#1a1610", border: "1px solid #3a2e22" }
 
-  const StatCard = ({ label, value, icon, page, sub }: any) => (
+  const StatCard = ({ label, value, icon, page, sub }: { label: string; value: any; icon: IconName; page: Page; sub?: string }) => (
     <div className={card} style={cardStyle}
       onClick={() => onNavigate(page)}
       onMouseEnter={e => Object.assign((e.currentTarget as HTMLElement).style, cardHover)}
       onMouseLeave={e => Object.assign((e.currentTarget as HTMLElement).style, cardStyle)}>
       <div className="flex items-center justify-between">
-        <span className="text-xl" style={{ color: "#d4734a" }}>{icon}</span>
+        <span style={{ color: "#d4734a" }}><Icon name={icon} size={22} /></span>
         <span className="text-2xl md:text-3xl font-bold" style={{ color: "#f0e8dc", letterSpacing: "-1px" }}>{value ?? "—"}</span>
       </div>
       <span className="text-xs font-medium uppercase tracking-widest" style={{ color: "#6a5040" }}>{label}</span>
@@ -45,11 +46,11 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
 
       {/* Stat cards : 1 col mobile → 3 cols desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard label="Stocks" value={stats?.total} icon="▣" page="storage"
+        <StatCard label="Stocks" value={stats?.total} icon="basket" page="storage"
           sub={stats ? `${stats.critical_count} critique${stats.critical_count > 1 ? "s" : ""}` : ""} />
-        <StatCard label="Alertes" value={stats ? stats.critical_count + stats.low_count : null} icon="◇" page="storage"
+        <StatCard label="Alertes" value={stats ? stats.critical_count + stats.low_count : null} icon="alert" page="storage"
           sub={stats?.expiring_count ? `${stats.expiring_count} expire${stats.expiring_count > 1 ? "nt" : ""} bientôt` : "Tout est OK"} />
-        <StatCard label="Recettes" value={recent.length > 0 ? recent.length : "0"} icon="◈" page="recipes" sub="Votre bibliothèque" />
+        <StatCard label="Recettes" value={recent.length > 0 ? recent.length : "0"} icon="book" page="recipes" sub="Votre bibliothèque" />
       </div>
 
       {/* Listes : 1 col mobile → 2 cols desktop */}
@@ -113,16 +114,16 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
 
       {/* Actions rapides : scroll horizontal sur mobile */}
       <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
-        {[
-          { label: "Nouvelle recette",    icon: "◈", page: "recipes"  as Page },
-          { label: "Mettre à jour stock", icon: "▣", page: "storage"  as Page },
-        ].map(a => (
+        {([
+          { label: "Nouvelle recette",    icon: "book"   as IconName, page: "recipes" as Page },
+          { label: "Mettre à jour stock", icon: "basket" as IconName, page: "storage" as Page },
+        ]).map(a => (
           <button key={a.label} onClick={() => onNavigate(a.page)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all flex-shrink-0"
             style={{ background: "#141210", border: "1px solid #2a2018", color: "#8a7060" }}
             onMouseEnter={e => { e.currentTarget.style.color = "#d4734a"; e.currentTarget.style.borderColor = "#d4734a40" }}
             onMouseLeave={e => { e.currentTarget.style.color = "#8a7060"; e.currentTarget.style.borderColor = "#2a2018" }}>
-            <span>{a.icon}</span> {a.label}
+            <Icon name={a.icon} size={16} /> {a.label}
           </button>
         ))}
       </div>
