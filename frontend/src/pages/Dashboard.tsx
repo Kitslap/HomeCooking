@@ -6,6 +6,20 @@ import { Icon, type IconName } from "@/components/Icon"
 
 const levelColor: Record<string, string> = { ok: "#5a9e6f", low: "#d4943a", critical: "#c85050" }
 
+// Construit le sous-titre de la carte "Alertes" à partir des axes du backend.
+// L'idée : montrer le détail des raisons qui composent attention_count (qui est
+// une union distincte, donc la somme des axes ci-dessous peut être ≥ attention_count
+// quand un article est à la fois en stock faible ET expirant bientôt).
+function alertsSub(s: StorageStats): string {
+  if (s.attention_count === 0) return "Tout est OK"
+  const parts: string[] = []
+  const stock = s.critical_count + s.low_count
+  if (s.critical_count > 0) parts.push(`${s.critical_count} critique${s.critical_count > 1 ? "s" : ""}`)
+  else if (stock > 0)       parts.push(`${stock} stock${stock > 1 ? "s" : ""} faible${stock > 1 ? "s" : ""}`)
+  if (s.expiring_count > 0) parts.push(`${s.expiring_count} à consommer`)
+  return parts.join(" · ")
+}
+
 export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const [stats, setStats]   = useState<StorageStats | null>(null)
   const [recent, setRecent] = useState<Recipe[]>([])
@@ -55,8 +69,8 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard label="Stocks" value={stats?.total} icon="basket" page="storage"
           sub={stats ? `${stats.critical_count} critique${stats.critical_count > 1 ? "s" : ""}` : ""} />
-        <StatCard label="Alertes" value={stats ? stats.critical_count + stats.low_count : null} icon="alert" page="storage"
-          sub={stats?.expiring_count ? `${stats.expiring_count} expire${stats.expiring_count > 1 ? "nt" : ""} bientôt` : "Tout est OK"} />
+        <StatCard label="Alertes" value={stats?.attention_count ?? null} icon="alert" page="storage"
+          sub={stats ? alertsSub(stats) : ""} />
         <StatCard label="Recettes" value={recipeTotal ?? "—"} icon="book" page="recipes" sub="Votre bibliothèque" />
       </div>
 

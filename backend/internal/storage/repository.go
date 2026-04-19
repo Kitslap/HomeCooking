@@ -192,7 +192,14 @@ func (r *Repository) GetAlerts(ctx context.Context, userID int64) ([]Alert, erro
 func (r *Repository) GetStats(ctx context.Context, userID int64) (Stats, error) {
 	var stats Stats
 
-	// Comptages en une seule passe via agrégats conditionnels
+	// Comptages en une seule passe via agrégats conditionnels.
+	//
+	// attention_count = union distincte des articles nécessitant une action,
+	// c'est-à-dire ceux dont le stock est trop bas (low OU critical) OU dont
+	// la péremption est dans les 7 jours (ou déjà dépassée). Formulation en
+	// négation positive pour éviter le double comptage d'un article qui
+	// cumule plusieurs raisons : on compte "pas tranquille" = PAS (quantité
+	// largement suffisante ET péremption lointaine/inexistante).
 	err := r.db.QueryRowContext(ctx, `
 		SELECT
 		  COUNT(*) AS total,
@@ -208,11 +215,16 @@ func (r *Repository) GetStats(ctx context.Context, userID int64) (Stats, error) 
 		  SUM(CASE WHEN expiry IS NOT NULL
 		            AND date(expiry) >= date('now')
 		            AND date(expiry) <= date('now', '+7 days')
-		       THEN 1 ELSE 0 END) AS expiring_count
+		       THEN 1 ELSE 0 END) AS expiring_count,
+		  SUM(CASE WHEN NOT (
+		              quantity > alert_at
+		              AND (expiry IS NULL OR date(expiry) > date('now', '+7 days'))
+		            )
+		       THEN 1 ELSE 0 END) AS attention_count
 		FROM storage_items
 		WHERE user_id = ?`,
 		userID,
-	).Scan(&stats.Total, &stats.OKCount, &stats.LowCount, &stats.CriticalCount, &stats.ExpiringCount)
+	).Scan(&stats.Total, &stats.OKCount, &stats.LowCount, &stats.CriticalCount, &stats.ExpiringCount, &stats.AttentionCount)
 	if err != nil {
 		return Stats{}, fmt.Errorf("stats: %w", err)
 	}

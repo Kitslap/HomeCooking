@@ -49,12 +49,13 @@ type Alert struct {
 
 // Stats regroupe les métriques d'inventaire de l'utilisateur.
 type Stats struct {
-	Total         int     `json:"total"`          // nombre total d'articles
-	OKCount       int     `json:"ok_count"`       // articles OK
-	LowCount      int     `json:"low_count"`      // articles faibles
-	CriticalCount int     `json:"critical_count"` // articles critiques (vides ou expirés)
-	ExpiringCount int     `json:"expiring_count"` // articles expirant dans les 7 jours
-	Categories    []string `json:"categories"`    // liste des catégories distinctes
+	Total          int      `json:"total"`           // nombre total d'articles
+	OKCount        int      `json:"ok_count"`        // articles OK
+	LowCount       int      `json:"low_count"`       // articles faibles
+	CriticalCount  int      `json:"critical_count"`  // articles critiques (vides ou expirés)
+	ExpiringCount  int      `json:"expiring_count"`  // articles expirant dans les 7 jours
+	AttentionCount int      `json:"attention_count"` // union distincte : low ∪ critical ∪ expiring (articles nécessitant une action)
+	Categories     []string `json:"categories"`      // liste des catégories distinctes
 }
 
 // ShoppingEntry est une ligne de liste de courses générée automatiquement.

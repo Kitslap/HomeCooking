@@ -97,7 +97,9 @@ export interface StorageInput {
 }
 export interface StorageStats {
   total: number; ok_count: number; low_count: number
-  critical_count: number; expiring_count: number; categories: string[]
+  critical_count: number; expiring_count: number
+  attention_count: number // union distincte : low ∪ critical ∪ expiring (articles nécessitant une action)
+  categories: string[]
 }
 export interface StorageAlert {
   id: number; name: string; quantity: number; unit: string
