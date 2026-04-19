@@ -12,7 +12,7 @@
 <div align="center">
   <img src="screens/auth_page.png" alt="Login" width="360" />
   <br /><br />
-  <img src="screens/dashboard.png" alt="Dashboard" width="270" />
+  <img src="screens/dashboard_.png" alt="Dashboard" width="270" />
   &nbsp;
   <img src="screens/recettes.png" alt="Recipes" width="270" />
   &nbsp;
