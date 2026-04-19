@@ -12,7 +12,7 @@
 <div align="center">
   <img src="screens/auth_page.png" alt="Connexion" width="360" />
   <br /><br />
-  <img src="screens/dashboard.png" alt="Tableau de bord" width="270" />
+  <img src="screens/dashboard_.png" alt="Tableau de bord" width="270" />
   &nbsp;
   <img src="screens/recettes.png" alt="Recettes" width="270" />
   &nbsp;
