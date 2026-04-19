@@ -9,11 +9,18 @@ const levelColor: Record<string, string> = { ok: "#5a9e6f", low: "#d4943a", crit
 export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const [stats, setStats]   = useState<StorageStats | null>(null)
   const [recent, setRecent] = useState<Recipe[]>([])
+  const [recipeTotal, setRecipeTotal] = useState<number | null>(null)
   const [alerts, setAlerts] = useState<any[]>([])
 
   useEffect(() => {
     storage.stats().then(setStats).catch(() => {})
-    recipes.list().then(r => setRecent(r.data?.slice(0, 3) ?? [])).catch(() => {})
+    recipes.list().then(r => {
+      const data = r.data ?? []
+      setRecent(data.slice(0, 3))
+      // Le total renvoyé par l'API est la source de vérité — `recent` est tronqué à 3
+      // pour l'affichage des dernières recettes et ne doit pas servir de compteur.
+      setRecipeTotal(typeof r.total === "number" ? r.total : data.length)
+    }).catch(() => {})
     storage.alerts().then(r => setAlerts(r.data?.slice(0, 3) ?? [])).catch(() => {})
   }, [])
 
@@ -50,7 +57,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: Page) => voi
           sub={stats ? `${stats.critical_count} critique${stats.critical_count > 1 ? "s" : ""}` : ""} />
         <StatCard label="Alertes" value={stats ? stats.critical_count + stats.low_count : null} icon="alert" page="storage"
           sub={stats?.expiring_count ? `${stats.expiring_count} expire${stats.expiring_count > 1 ? "nt" : ""} bientôt` : "Tout est OK"} />
-        <StatCard label="Recettes" value={recent.length > 0 ? recent.length : "0"} icon="book" page="recipes" sub="Votre bibliothèque" />
+        <StatCard label="Recettes" value={recipeTotal ?? "—"} icon="book" page="recipes" sub="Votre bibliothèque" />
       </div>
 
       {/* Listes : 1 col mobile → 2 cols desktop */}
